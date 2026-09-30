@@ -85,6 +85,21 @@ export const fetchProviderStatus = async () => {
   }
 };
 
+export const updateMarketProvider = async (provider) => {
+  try {
+    const response = await api.post('/markets/provider', { provider });
+    return {
+      success: true,
+      data: response.data?.status,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 // Phase 3: Technical Analysis Endpoints
 export const fetchAnalysis = async (pair, timeframe = '1h') => {
   try {

@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 export class SignalService {
   constructor() {
     this.activeSignalsMemory = new Map();
+    this.evaluationCache = new Map();
   }
 
   /**
@@ -20,6 +21,12 @@ export class SignalService {
    */
   async evaluatePair(pair, timeframe = '1h', persist = true) {
     const normPair = marketDataManager.normalizePair(pair);
+    const cacheKey = `${normPair}_${timeframe}`;
+    const cached = this.evaluationCache.get(cacheKey);
+    // Cache for 30 seconds to prevent rapid credit/compute burning
+    if (cached && Date.now() - cached.timestamp < 30000) {
+      return cached.data;
+    }
 
     // 1. Fetch candles & execute technical indicator analysis
     const candleResult = await marketDataManager.getCandles(normPair, timeframe, 120);
@@ -96,6 +103,7 @@ export class SignalService {
 
     // Cache in memory
     this.activeSignalsMemory.set(normPair, signalObject);
+    this.evaluationCache.set(cacheKey, { data: signalObject, timestamp: Date.now() });
 
     // Save to MongoDB if connected and persist requested
     if (persist && mongoose.connection.readyState === 1 && (signalObject.direction === 'BUY' || signalObject.direction === 'SELL')) {

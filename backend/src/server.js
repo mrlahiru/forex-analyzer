@@ -5,6 +5,7 @@ import config from './config/index.js';
 import { connectDB } from './config/db.js';
 import { initScheduledJobs } from './jobs/index.js';
 import { marketScanner } from './services/signals/index.js';
+import { marketDataManager } from './services/marketData/index.js';
 
 const server = http.createServer(app);
 
@@ -31,6 +32,30 @@ wss.on('connection', (ws) => {
     }
   });
 });
+
+// Real-Time WebSocket Market Price Ticker (Emits live quotes + micro-ticks every 2 seconds to all clients)
+setInterval(async () => {
+  if (wss.clients.size === 0) return;
+  try {
+    const quotes = await marketDataManager.getAllQuotes();
+    const status = marketDataManager.getProviderStatus();
+    const payload = JSON.stringify({
+      type: 'PRICE_TICK',
+      timestamp: new Date().toISOString(),
+      activeProvider: status.activeProvider,
+      isLive: status.isLive,
+      markets: quotes,
+      twelveDataUsage: status.twelveDataUsage,
+    });
+    wss.clients.forEach((client) => {
+      if (client.readyState === 1) {
+        client.send(payload);
+      }
+    });
+  } catch (err) {
+    // Non-blocking tick warning
+  }
+}, 2000);
 
 // Broadcast real-time scanner lifecycle events to all connected clients
 marketScanner.onEvent((event, signal) => {

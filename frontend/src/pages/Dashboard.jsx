@@ -51,6 +51,8 @@ import {
   updateNotificationSettings,
   runBacktest,
   fetchBacktestResults,
+  fetchProviderStatus,
+  updateMarketProvider,
 } from '../services/api';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { AiAnalysisCard } from '../components/AiAnalysisCard';
@@ -233,8 +235,20 @@ export const Dashboard = ({
   const [mtfData, setMtfData] = useState(null);
   const [activeSignalDetails, setActiveSignalDetails] = useState(defaultFallbackPairs[0]);
   const [loadingSignal, setLoadingSignal] = useState(false);
-  const [feedSource, setFeedSource] = useState('Simulation Fallback');
+  const [feedSource, setFeedSource] = useState('Live (Yahoo Finance - Free)');
   const [priceDeltas, setPriceDeltas] = useState({});
+  const [marketStatus, setMarketStatus] = useState(null);
+  const [switchingProvider, setSwitchingProvider] = useState(false);
+
+  const handleSwitchProvider = async (newProvider) => {
+    setSwitchingProvider(true);
+    const res = await updateMarketProvider(newProvider);
+    if (res.success && res.data) {
+      setMarketStatus(res.data);
+      await loadMarketAndSignals();
+    }
+    setSwitchingProvider(false);
+  };
 
   // Phase 5 Risk Calculator State
   const [accountBalance, setAccountBalance] = useState(1000);
@@ -262,13 +276,24 @@ export const Dashboard = ({
   const loadMarketAndSignals = async () => {
     setLoadingSignal(true);
 
-    const [marketsRes, signalsRes] = await Promise.all([
+    const [marketsRes, signalsRes, statusRes] = await Promise.all([
       fetchMarkets(),
       evaluateAllSignals(selectedTimeframe),
+      fetchProviderStatus(),
     ]);
 
+    if (statusRes.success && statusRes.data) {
+      setMarketStatus(statusRes.data);
+    }
+
     if (marketsRes.success && marketsRes.data?.markets) {
-      setFeedSource(marketsRes.data.isLive ? `Live (${marketsRes.data.activeProvider})` : 'Simulation Fallback');
+      const activeP = marketsRes.data.activeProvider;
+      const label = activeP === 'yahoo_finance'
+        ? 'Live (Yahoo Finance - Free)'
+        : activeP === 'twelve_data'
+        ? `Live TwelveData (${statusRes.data?.twelveDataUsage?.creditsUsed || 0}/800 cr)`
+        : 'Simulation Fallback';
+      setFeedSource(marketsRes.data.isLive ? label : 'Simulation Fallback');
     }
 
     if (marketsRes.success && marketsRes.data?.markets?.length > 0) {
@@ -446,11 +471,10 @@ export const Dashboard = ({
       if (res.success && res.data) setBacktestData(res.data);
     });
 
-    // High-frequency live tick refresher: updates quotes and current active candle every 3 seconds
+    // Signal refresh heartbeat: refreshes every 45s (real-time price ticks stream continuously via WebSocket)
     const liveTickInterval = setInterval(() => {
       loadMarketAndSignals();
-      loadPairDetails(selectedPair.pair, selectedTimeframe, false);
-    }, 3000);
+    }, 45000);
 
     const scannerInterval = setInterval(loadScanner, 10000);
     const tgInterval = setInterval(loadTelegramStatus, 15000);
@@ -462,7 +486,7 @@ export const Dashboard = ({
     };
   }, [selectedPair.pair, selectedTimeframe]);
 
-  // Real-Time WebSocket stream connection for instant scanner and price events
+  // Real-Time WebSocket stream connection for instant live price ticks and scanner events
   useEffect(() => {
     let ws = null;
     try {
@@ -474,11 +498,49 @@ export const Dashboard = ({
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          if (msg.type === 'SCANNER_EVENT') {
+          if (msg.type === 'PRICE_TICK' && msg.markets?.length > 0) {
+            const providerName = msg.activeProvider === 'yahoo_finance'
+              ? 'Live (Yahoo Finance - Free)'
+              : msg.activeProvider === 'twelve_data'
+              ? `Live TwelveData (${msg.twelveDataUsage?.creditsUsed || 0}/800 cr)`
+              : 'Simulation Fallback';
+            setFeedSource(msg.isLive ? providerName : 'Simulation Fallback');
+
+            setPairsData((prev) =>
+              prev.map((item) => {
+                const match = msg.markets.find((m) => m.pair === item.pair);
+                if (!match) return item;
+                const newPrice = match.price;
+                if (item.price && newPrice && newPrice !== item.price) {
+                  setPriceDeltas((deltas) => ({
+                    ...deltas,
+                    [item.pair]: newPrice > item.price ? 'up' : 'down',
+                  }));
+                }
+                const chgPct = match.changePercent !== undefined ? match.changePercent : item.changePercent;
+                const dynamicTrend = (chgPct || 0) >= 0
+                  ? `Bullish Momentum (+${(chgPct || 0).toFixed(2)}%)`
+                  : `Bearish Pressure (${(chgPct || 0).toFixed(2)}%)`;
+
+                return {
+                  ...item,
+                  price: newPrice,
+                  change: match.change !== undefined ? match.change : item.change,
+                  changePercent: chgPct,
+                  trend: dynamicTrend,
+                  isLive: match.isLive ?? msg.isLive,
+                  provider: match.provider || msg.activeProvider,
+                };
+              })
+            );
+
+            setTimeout(() => {
+              setPriceDeltas({});
+            }, 1200);
+          } else if (msg.type === 'SCANNER_EVENT') {
             setScannerEvents((prev) => [msg.event, ...prev.slice(0, 99)]);
             // Immediate live re-evaluation on scanner events
             loadMarketAndSignals();
-            loadPairDetails(selectedPair.pair, selectedTimeframe, false);
           }
         } catch (e) {}
       };
@@ -678,31 +740,91 @@ export const Dashboard = ({
       {/* Market Overview Section */}
       {showMarkets && (
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-slate-100">
-              Market Overview & Signal Matrix
-            </h2>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg font-bold tracking-tight text-slate-100">
+                Market Overview & Signal Matrix
+              </h2>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>WS TICK STREAM</span>
+              </span>
+            </div>
             <p className="text-xs text-slate-400">
               Real-time scoring across 7 core currency pairs with dynamic multi-target levels
             </p>
           </div>
 
-          {/* Timeframe Switcher */}
-          <div className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
-            {TIMEFRAMES.map((tf) => (
+          {/* Provider Selector, Sync & Timeframe Switcher */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Live Feed Mode Selector */}
+            <div className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-mono">
               <button
-                key={tf}
-                onClick={() => setSelectedTimeframe(tf)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition ${
-                  selectedTimeframe === tf
-                    ? 'bg-blue-600 text-white shadow-sm'
+                onClick={() => handleSwitchProvider('yahoo_finance')}
+                disabled={switchingProvider}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  (marketStatus?.activeProvider || 'yahoo_finance') === 'yahoo_finance'
+                    ? 'bg-emerald-600 text-white font-semibold shadow-sm'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
+                title="100% Free Live Forex Quotes with No API Credit Limits"
               >
-                {tf}
+                Yahoo (Unlimited)
               </button>
-            ))}
+              <button
+                onClick={() => handleSwitchProvider('twelve_data')}
+                disabled={switchingProvider}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  marketStatus?.activeProvider === 'twelve_data'
+                    ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                title={`Twelve Data Eco-Mode (${marketStatus?.twelveDataUsage?.creditsUsed || 0}/800 used)`}
+              >
+                Twelve Data (Eco)
+              </button>
+              <button
+                onClick={() => handleSwitchProvider('mock')}
+                disabled={switchingProvider}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  marketStatus?.activeProvider === 'mock'
+                    ? 'bg-amber-600 text-white font-semibold shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                title="Simulated Random Walk Ticker"
+              >
+                Sim
+              </button>
+            </div>
+
+            {/* Sync Now Button */}
+            <button
+              onClick={() => loadMarketAndSignals()}
+              disabled={loadingSignal}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center space-x-1.5 transition active:scale-95 disabled:opacity-50"
+              title="Force instant quote refresh"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingSignal ? 'animate-spin text-blue-400' : ''}`} />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+
+            {/* Timeframe Switcher */}
+            <div className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+              {TIMEFRAMES.map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => setSelectedTimeframe(tf)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition ${
+                    selectedTimeframe === tf
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -738,7 +860,7 @@ export const Dashboard = ({
                       {item.isLive ? (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                          <span>Live TwelveData</span>
+                          <span>{item.provider === 'yahoo_finance' ? 'Live Yahoo' : item.provider === 'twelve_data' ? 'Live 12Data' : 'Live Feed'}</span>
                         </span>
                       ) : (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">

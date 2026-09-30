@@ -68,3 +68,22 @@ export const getProviderStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+export const setProvider = async (req, res, next) => {
+  try {
+    const { provider } = req.body;
+    if (!provider) {
+      return res.status(400).json({ success: false, message: 'Provider name is required' });
+    }
+    marketDataManager.setActiveProvider(provider);
+    const status = marketDataManager.getProviderStatus();
+    res.status(200).json({
+      success: true,
+      message: `Active market data provider switched to ${provider}`,
+      status,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

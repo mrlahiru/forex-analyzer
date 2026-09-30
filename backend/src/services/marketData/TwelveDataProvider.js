@@ -3,9 +3,11 @@ import MarketDataProvider from './MarketDataProvider.js';
 
 export class TwelveDataProvider extends MarketDataProvider {
   constructor(apiKey) {
-    super('TwelveData', { maxPerMinute: 8 });
+    super('TwelveData', { maxPerMinute: 6 });
     this.apiKey = apiKey;
     this.baseUrl = 'https://api.twelvedata.com';
+    this.creditsUsed = 0;
+    this.dailyLimit = 800;
     this.client = axios.create({
       baseURL: this.baseUrl,
       timeout: 10000,
@@ -34,13 +36,35 @@ export class TwelveDataProvider extends MarketDataProvider {
     return Boolean(this.apiKey && this.apiKey.trim().length > 0);
   }
 
+  recordCreditsFromHeaders(headers) {
+    if (headers && headers['api-credits-used']) {
+      const used = parseInt(headers['api-credits-used'], 10);
+      if (!isNaN(used)) {
+        this.creditsUsed = used;
+      }
+    }
+  }
+
+  getUsageInfo() {
+    return {
+      creditsUsed: this.creditsUsed,
+      dailyLimit: this.dailyLimit,
+      remaining: Math.max(0, this.dailyLimit - this.creditsUsed),
+      isExhausted: this.creditsUsed >= 780,
+    };
+  }
+
   async getCandles(pair, timeframe = '1h', limit = 100) {
     if (!this.isAvailable()) {
       throw new Error('Twelve Data API key is not configured');
     }
 
+    if (this.creditsUsed >= 780) {
+      throw new Error(`Twelve Data daily credit limit reached (${this.creditsUsed}/${this.dailyLimit})`);
+    }
+
     if (!this.checkRateLimit()) {
-      throw new Error('Twelve Data free rate limit reached (max 8 requests/min). Please wait a moment.');
+      throw new Error('Twelve Data free rate limit reached (max 6-8 requests/min). Please wait a moment.');
     }
 
     const symbol = this.formatPairForProvider(pair);
@@ -56,10 +80,11 @@ export class TwelveDataProvider extends MarketDataProvider {
         },
       });
 
+      this.recordCreditsFromHeaders(response.headers);
       const data = response.data;
 
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Twelve Data API returned an error');
+      if (data.status === 'error' || data.code === 429) {
+        throw new Error(data.message || 'Twelve Data API returned an error or quota exceeded');
       }
 
       if (!data.values || !Array.isArray(data.values)) {
@@ -92,8 +117,12 @@ export class TwelveDataProvider extends MarketDataProvider {
       throw new Error('Twelve Data API key is not configured');
     }
 
+    if (this.creditsUsed >= 780) {
+      throw new Error(`Twelve Data daily credit limit reached (${this.creditsUsed}/${this.dailyLimit})`);
+    }
+
     if (!this.checkRateLimit()) {
-      throw new Error('Twelve Data rate limit reached');
+      throw new Error('Twelve Data rate limit reached (max 6-8 requests/min)');
     }
 
     const symbol = this.formatPairForProvider(pair);
@@ -106,9 +135,10 @@ export class TwelveDataProvider extends MarketDataProvider {
         },
       });
 
+      this.recordCreditsFromHeaders(response.headers);
       const data = response.data;
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Error fetching quote');
+      if (data.status === 'error' || data.code === 429) {
+        throw new Error(data.message || 'Error fetching quote from Twelve Data');
       }
 
       const price = parseFloat(data.close || data.price);
@@ -141,8 +171,12 @@ export class TwelveDataProvider extends MarketDataProvider {
       throw new Error('Twelve Data API key is not configured');
     }
 
+    if (this.creditsUsed >= 780) {
+      throw new Error(`Twelve Data daily credit limit reached (${this.creditsUsed}/${this.dailyLimit})`);
+    }
+
     if (!this.checkRateLimit()) {
-      throw new Error('Twelve Data rate limit reached (max 8 requests/min)');
+      throw new Error('Twelve Data rate limit reached (max 6-8 requests/min)');
     }
 
     const symbols = pairs.map((p) => this.formatPairForProvider(p)).join(',');
@@ -155,9 +189,10 @@ export class TwelveDataProvider extends MarketDataProvider {
         },
       });
 
+      this.recordCreditsFromHeaders(response.headers);
       const data = response.data;
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Error fetching batch quotes');
+      if (data.status === 'error' || data.code === 429) {
+        throw new Error(data.message || 'Error fetching batch quotes from Twelve Data');
       }
 
       const results = [];

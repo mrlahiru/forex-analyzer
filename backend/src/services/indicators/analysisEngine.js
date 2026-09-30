@@ -114,18 +114,27 @@ export const runTechnicalAnalysis = (candles, pair = 'EUR/USD', timeframe = '1h'
   };
 };
 
+const mtfCache = new Map();
+
 /**
  * Multi-Timeframe Confirmation Analysis
- * Evaluates 4H, 1H, 15M, 5M timeframes to check alignment
+ * Evaluates 4H, 1H, 15M, 5M timeframes to check alignment (cached for 5 minutes)
  * @param {string} pair
  */
 export const runMultiTimeframeAnalysis = async (pair) => {
+  const normPair = marketDataManager.normalizePair(pair);
+  const cached = mtfCache.get(normPair);
+  // Cache for 5 minutes (300,000 ms) because macro timeframes (4h, 1h) move slowly
+  if (cached && Date.now() - cached.timestamp < 300000) {
+    return cached.data;
+  }
+
   const timeframes = ['4h', '1h', '15m', '5m'];
 
   const results = await Promise.all(
     timeframes.map(async (tf) => {
-      const candleRes = await marketDataManager.getCandles(pair, tf, 80);
-      const analysis = runTechnicalAnalysis(candleRes.candles, pair, tf);
+      const candleRes = await marketDataManager.getCandles(normPair, tf, 80);
+      const analysis = runTechnicalAnalysis(candleRes.candles, normPair, tf);
       return {
         timeframe: tf,
         bias: analysis.overallBias,
@@ -160,13 +169,16 @@ export const runMultiTimeframeAnalysis = async (pair) => {
     confidenceBonus = -10;
   }
 
-  return {
-    pair: marketDataManager.normalizePair(pair),
+  const responseData = {
+    pair: normPair,
     consensus,
     confidenceBonus,
     timeframes: results,
     timestamp: new Date().toISOString(),
   };
+
+  mtfCache.set(normPair, { data: responseData, timestamp: Date.now() });
+  return responseData;
 };
 
 export default {
