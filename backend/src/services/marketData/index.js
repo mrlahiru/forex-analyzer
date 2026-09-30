@@ -104,7 +104,8 @@ export class MarketDataManager {
   async getQuote(pair) {
     const normPair = this.normalizePair(pair);
     const cached = this.quoteCache.get(normPair);
-    if (cached && Date.now() - cached.cachedAt < 10000) {
+    const quoteTtl = this.activeProviderName === 'mock' ? 1200 : 10000;
+    if (cached && Date.now() - cached.cachedAt < quoteTtl) {
       return cached.data;
     }
 
@@ -151,8 +152,9 @@ export class MarketDataManager {
     const cacheKey = `${normPair}_${timeframe}_${limit}`;
     const cached = this.candleCache.get(cacheKey);
 
-    // Candle cache TTL 15 seconds
-    if (cached && Date.now() - cached.cachedAt < 15000) {
+    // Candle cache TTL (2s for mock simulator, 15s for live API)
+    const candleTtl = this.activeProviderName === 'mock' ? 2000 : 15000;
+    if (cached && Date.now() - cached.cachedAt < candleTtl) {
       return cached.data;
     }
 

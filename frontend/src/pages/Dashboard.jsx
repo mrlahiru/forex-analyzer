@@ -311,8 +311,10 @@ export const Dashboard = ({
   };
 
   // Load candles & indicators for the selected pair
-  const loadPairDetails = async (pair, timeframe) => {
-    loadAiExplanation(pair, timeframe);
+  const loadPairDetails = async (pair, timeframe, includeAi = true) => {
+    if (includeAi) {
+      loadAiExplanation(pair, timeframe);
+    }
 
     const [candleRes, anaRes, mtfRes] = await Promise.all([
       fetchCandles(pair, timeframe, 100),
@@ -411,9 +413,10 @@ export const Dashboard = ({
     setBacktestLoading(false);
   };
 
+  // Initial load & real-time live market ticker loop (every 3 seconds)
   useEffect(() => {
     loadMarketAndSignals();
-    loadPairDetails(selectedPair.pair, selectedTimeframe);
+    loadPairDetails(selectedPair.pair, selectedTimeframe, true);
     loadScanner();
     loadTelegramStatus();
 
@@ -422,23 +425,58 @@ export const Dashboard = ({
       if (res.success && res.data) setBacktestData(res.data);
     });
 
-    const interval = setInterval(loadMarketAndSignals, 15000);
+    // High-frequency live tick refresher: updates quotes and current active candle every 3 seconds
+    const liveTickInterval = setInterval(() => {
+      loadMarketAndSignals();
+      loadPairDetails(selectedPair.pair, selectedTimeframe, false);
+    }, 3000);
+
     const scannerInterval = setInterval(loadScanner, 10000);
     const tgInterval = setInterval(loadTelegramStatus, 15000);
+
     return () => {
-      clearInterval(interval);
+      clearInterval(liveTickInterval);
       clearInterval(scannerInterval);
       clearInterval(tgInterval);
     };
-  }, []);
+  }, [selectedPair.pair, selectedTimeframe]);
 
+  // Real-Time WebSocket stream connection for instant scanner and price events
   useEffect(() => {
-    loadPairDetails(selectedPair.pair, selectedTimeframe);
+    let ws = null;
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.hostname || 'localhost';
+      const wsUrl = `${protocol}//${host}:5001/ws`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'SCANNER_EVENT') {
+            setScannerEvents((prev) => [msg.event, ...prev.slice(0, 99)]);
+            // Immediate live re-evaluation on scanner events
+            loadMarketAndSignals();
+            loadPairDetails(selectedPair.pair, selectedTimeframe, false);
+          }
+        } catch (e) {}
+      };
+    } catch (e) {
+      console.warn('[WebSocket] Connection fallback:', e.message);
+    }
+
+    return () => {
+      if (ws) ws.close();
+    };
+  }, [selectedPair.pair, selectedTimeframe]);
+
+  // Keep active signal details in sync with updated pair quotes
+  useEffect(() => {
     const current = pairsData.find((p) => p.pair === selectedPair.pair);
     if (current) {
       setActiveSignalDetails(current);
     }
-  }, [selectedPair.pair, selectedTimeframe, pairsData]);
+  }, [pairsData, selectedPair.pair]);
 
   useEffect(() => {
     runRiskCalculation();
@@ -468,15 +506,18 @@ export const Dashboard = ({
       <div className="rounded-2xl bg-gradient-to-r from-blue-900/30 via-slate-900 to-indigo-900/20 border border-blue-500/30 p-5 backdrop-blur-md shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>All 11 Phases Complete — Production Ready</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span className="font-mono font-bold">REAL-TIME AUTO-TICK ACTIVE (3s)</span>
               </span>
-              <h1 className="text-xl font-bold tracking-tight text-white">
-                ForexAI Analyzer — Full-Stack Algorithmic Signal & Quantitative Risk Platform
-              </h1>
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                WEBSOCKET LIVE
+              </span>
             </div>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              ForexAI Analyzer — Full-Stack Algorithmic Signal & Quantitative Risk Platform
+            </h1>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
               Deterministic 100-point signal engine, institutional multi-target TP/SL execution, TradingView charts, automated background scanner, Telegram alerts, backtesting suite & production Docker stack.
             </p>
