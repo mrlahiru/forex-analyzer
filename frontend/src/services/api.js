@@ -162,4 +162,38 @@ export const evaluateAllSignals = async (timeframe = '1h') => {
   }
 };
 
+// Phase 5: Dynamic TP/SL & Risk Calculator Endpoints
+export const calculateRisk = async (riskParams) => {
+  try {
+    const response = await api.post('/risk/calculate', riskParams);
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const fetchRiskParameters = async (pair, direction = 'BUY', timeframe = '1h') => {
+  try {
+    const cleanPair = pair.replace('/', '');
+    const response = await api.get(`/risk/parameters/${cleanPair}`, {
+      params: { direction, timeframe },
+    });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;

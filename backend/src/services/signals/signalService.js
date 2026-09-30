@@ -2,6 +2,7 @@ import { marketDataManager } from '../marketData/index.js';
 import { runTechnicalAnalysis, runMultiTimeframeAnalysis } from '../indicators/analysisEngine.js';
 import { evaluateDeterministicSignal } from './scoringEngine.js';
 import { applyMultiTimeframeConfirmation } from './multiTimeframeFilter.js';
+import { calculateDynamicTPSL } from '../risk/tpslEngine.js';
 import Signal from '../../models/Signal.js';
 import SignalEvent from '../../models/SignalEvent.js';
 import mongoose from 'mongoose';
@@ -33,41 +34,32 @@ export class SignalService {
     // 4. Multi-Timeframe Confirmation Filter
     const finalSignal = applyMultiTimeframeConfirmation(initialSignal, mtfData);
 
-    // 5. Calculate structural Entry, TP1, TP2, TP3, SL levels
+    // 5. Calculate structural Entry, TP1, TP2, TP3, SL levels using Dynamic TPSL Engine
     const currentPrice = analysis.currentPrice;
     const atr = analysis.indicators.volatility.atr || 0.0012;
-    const decimals = normPair.includes('JPY') ? 2 : 5;
 
-    let entry = currentPrice;
-    let stopLoss = null;
-    let tp1 = null;
-    let tp2 = null;
-    let tp3 = null;
-    let riskReward = { tp1: 1.0, tp2: 2.0, tp3: 3.0 };
+    const tpsl = calculateDynamicTPSL({
+      pair: normPair,
+      direction: finalSignal.direction,
+      currentPrice,
+      atr,
+      marketStructure: analysis.marketStructure,
+      supportResistance: analysis.supportResistance,
+    });
 
-    if (finalSignal.direction === 'BUY') {
-      // SL placed below nearest support with an ATR buffer
-      const support = analysis.supportResistance.nearestSupport;
-      stopLoss = support && (currentPrice - support) > (0.6 * atr)
-        ? parseFloat((support - (0.3 * atr)).toFixed(decimals))
-        : parseFloat((currentPrice - (1.5 * atr)).toFixed(decimals));
-
-      const riskDistance = currentPrice - stopLoss;
-      tp1 = parseFloat((currentPrice + riskDistance * 1.0).toFixed(decimals));
-      tp2 = parseFloat((currentPrice + riskDistance * 2.0).toFixed(decimals));
-      tp3 = parseFloat((currentPrice + riskDistance * 3.0).toFixed(decimals));
-    } else if (finalSignal.direction === 'SELL') {
-      // SL placed above nearest resistance with an ATR buffer
-      const resistance = analysis.supportResistance.nearestResistance;
-      stopLoss = resistance && (resistance - currentPrice) > (0.6 * atr)
-        ? parseFloat((resistance + (0.3 * atr)).toFixed(decimals))
-        : parseFloat((currentPrice + (1.5 * atr)).toFixed(decimals));
-
-      const riskDistance = stopLoss - currentPrice;
-      tp1 = parseFloat((currentPrice - riskDistance * 1.0).toFixed(decimals));
-      tp2 = parseFloat((currentPrice - riskDistance * 2.0).toFixed(decimals));
-      tp3 = parseFloat((currentPrice - riskDistance * 3.0).toFixed(decimals));
+    // If technical setup cannot produce reasonable risk/reward, veto to NO_TRADE (Section 9)
+    if (finalSignal.direction !== 'NO_TRADE' && !tpsl.isViable) {
+      finalSignal.direction = 'NO_TRADE';
+      finalSignal.confidence = 'LOW';
+      finalSignal.reasons.push('Vetoed: Market structure cannot support minimum 1:1 risk-to-reward ratio');
     }
+
+    const entry = tpsl.entry;
+    const stopLoss = tpsl.stopLoss;
+    const tp1 = tpsl.tp1;
+    const tp2 = tpsl.tp2;
+    const tp3 = tpsl.tp3;
+    const riskReward = tpsl.riskReward;
 
     const signalObject = {
       pair: normPair,

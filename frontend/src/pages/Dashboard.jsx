@@ -20,6 +20,12 @@ import {
   BarChart3,
   Award,
   Zap,
+  Calculator,
+  DollarSign,
+  Percent,
+  ShieldAlert,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import {
   fetchMarkets,
@@ -27,6 +33,7 @@ import {
   fetchAnalysis,
   fetchMultiTimeframeAnalysis,
   evaluateAllSignals,
+  calculateRisk,
 } from '../services/api';
 
 const defaultFallbackPairs = [
@@ -40,10 +47,10 @@ const defaultFallbackPairs = [
     score: 84,
     confidence: 'STRONG',
     entry: 1.0842,
-    tp1: 1.0852,
-    tp2: 1.0865,
-    tp3: 1.088,
-    sl: 1.0828,
+    tp1: 1.0858,
+    tp2: 1.0874,
+    tp3: 1.089,
+    sl: 1.0826,
     rr: '1:2.4',
     timeframe: '1h',
     breakdown: { emaTrend: 22, macd: 16, rsi: 15, marketStructure: 10, supportResistance: 11, volatility: 10 },
@@ -171,8 +178,8 @@ const roadmapPhases = [
   { phase: 'Phase 1', title: 'Project Initialization', status: 'completed', desc: 'React, Vite, Tailwind, Express (5001), CORS, MongoDB schema, Health check' },
   { phase: 'Phase 2', title: 'Market Data Layer', status: 'completed', desc: 'Twelve Data API abstraction, OANDA/AlphaVantage fallbacks, candlestick ingestion & OHLCV endpoints' },
   { phase: 'Phase 3', title: 'Technical Analysis Engine', status: 'completed', desc: 'EMA 20/50/200, RSI (Wilder), MACD (12,26,9), ATR, Market Structure & S/R' },
-  { phase: 'Phase 4', title: 'Deterministic Signal Engine', status: 'completed', desc: '100pt rule engine (EMA 25, MACD 20, RSI 15, Struct 15, S/R 15, Vol 10), BUY/SELL/NO TRADE, Multi-timeframe confirmation' },
-  { phase: 'Phase 5', title: 'Dynamic TP/SL Engine', status: 'upcoming', desc: 'Non-arbitrary ATR & structural Entry, TP1, TP2, TP3, SL, Risk Calculator' },
+  { phase: 'Phase 4', title: 'Deterministic Signal Engine', status: 'completed', desc: '100pt rule engine (EMA 25, MACD 20, RSI 15, Struct 15, S/R 15, Vol 10), BUY/SELL/NO TRADE, MTF confirmation' },
+  { phase: 'Phase 5', title: 'Dynamic TP/SL & Risk Calculator', status: 'completed', desc: 'Structural Entry, TP1, TP2, TP3, SL anchored to ATR/swings, lot sizing, and risk-to-reward calculation' },
   { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'upcoming', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
   { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'upcoming', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'upcoming', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
@@ -198,6 +205,11 @@ export const Dashboard = ({
   const [activeSignalDetails, setActiveSignalDetails] = useState(defaultFallbackPairs[0]);
   const [loadingSignal, setLoadingSignal] = useState(false);
   const [feedSource, setFeedSource] = useState('Simulation Fallback');
+
+  // Phase 5 Risk Calculator State
+  const [accountBalance, setAccountBalance] = useState(1000);
+  const [riskPercentage, setRiskPercentage] = useState(1.0);
+  const [riskCalculations, setRiskCalculations] = useState(null);
 
   // Load live quotes and evaluate signals
   const loadMarketAndSignals = async () => {
@@ -261,6 +273,32 @@ export const Dashboard = ({
     }
   };
 
+  // Run Phase 5 Risk Calculation
+  const runRiskCalculation = async () => {
+    const entry = activeSignalDetails?.entry || activeSignalDetails?.price;
+    const sl = activeSignalDetails?.sl || (entry ? (activeSignalDetails?.signal === 'SELL' ? entry + 0.002 : entry - 0.002) : null);
+    const tp1 = activeSignalDetails?.tp1;
+    const tp2 = activeSignalDetails?.tp2;
+    const tp3 = activeSignalDetails?.tp3;
+
+    if (!entry || !sl) return;
+
+    const res = await calculateRisk({
+      accountBalance,
+      riskPercentage,
+      entryPrice: entry,
+      stopLoss: sl,
+      tp1,
+      tp2,
+      tp3,
+      pair: activeSignalDetails?.pair,
+    });
+
+    if (res.success && res.data) {
+      setRiskCalculations(res.data);
+    }
+  };
+
   useEffect(() => {
     loadMarketAndSignals();
     loadPairDetails(selectedPair.pair, selectedTimeframe);
@@ -271,12 +309,15 @@ export const Dashboard = ({
 
   useEffect(() => {
     loadPairDetails(selectedPair.pair, selectedTimeframe);
-    // Sync active signal details
     const current = pairsData.find((p) => p.pair === selectedPair.pair);
     if (current) {
       setActiveSignalDetails(current);
     }
   }, [selectedPair.pair, selectedTimeframe, pairsData]);
+
+  useEffect(() => {
+    runRiskCalculation();
+  }, [accountBalance, riskPercentage, activeSignalDetails]);
 
   const indicators = analysisData?.indicators;
   const structure = analysisData?.marketStructure;
@@ -294,14 +335,14 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 4 Complete
+                Phase 5 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Deterministic Signal Engine & Multi-Timeframe Scoring Active
+                Dynamic TP/SL Engine & Risk Management Calculator Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              100-Point rule-based model (EMA 25, MACD 20, RSI 15, Structure 15, S/R 15, ATR 10), multi-timeframe concordance filters, and transparent signal justifications are live.
+              Levels calculated using dynamic swing extremes and ATR volatility. Built-in position sizing calculator evaluates pip values, lot sizes, and multi-target profit projections.
             </p>
           </div>
 
@@ -319,12 +360,12 @@ export const Dashboard = ({
               <span>{loadingSignal ? 'Scoring...' : 'Recalculate Signals'}</span>
             </button>
             <a
-              href={`http://localhost:5001/api/signals/evaluate/${selectedPair.pair.replace('/', '')}?timeframe=${selectedTimeframe}`}
+              href={`http://localhost:5001/api/risk/parameters/${selectedPair.pair.replace('/', '')}?direction=${isSell ? 'SELL' : 'BUY'}&timeframe=${selectedTimeframe}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-xs font-semibold text-blue-400 border border-blue-500/30 transition"
             >
-              <span>Signal JSON</span>
+              <span>Risk Params JSON</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -347,9 +388,9 @@ export const Dashboard = ({
             <span className="text-amber-400 font-semibold">{activeSignalDetails?.score || 0}/100</span>
           </div>
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">MTF Concordance</span>
+            <span className="text-slate-500 block text-[10px] uppercase">Max Risk Ratio</span>
             <span className="text-teal-400 font-semibold">
-              {activeSignalDetails?.timeframeConsensus?.replace(/_/g, ' ') || 'CHECKING'}
+              TP1 (1:1) / TP2 (1:2) / TP3 (1:3)
             </span>
           </div>
         </div>
@@ -363,7 +404,7 @@ export const Dashboard = ({
               Market Overview & Signal Matrix
             </h2>
             <p className="text-xs text-slate-400">
-              Real-time scoring across 7 core currency pairs (Score &ge; 75: Strong, 60-74: Moderate, &lt; 60: NO TRADE)
+              Real-time scoring across 7 core currency pairs with dynamic multi-target levels
             </p>
           </div>
 
@@ -487,7 +528,7 @@ export const Dashboard = ({
                   ></div>
                 </div>
 
-                {/* Bottom: Entry, TP1, TP2, TP3, SL Card */}
+                {/* Bottom: Dynamic Entry, TP1, TP2, TP3, SL Card */}
                 {!cardIsNoTrade && item.entry ? (
                   <div className="space-y-1.5 bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 text-xs font-mono">
                     <div className="flex justify-between items-center text-slate-400">
@@ -495,15 +536,15 @@ export const Dashboard = ({
                       <span className="text-white font-semibold">{item.entry}</span>
                     </div>
                     <div className="flex justify-between items-center text-emerald-400">
-                      <span>TP1 (Conservative):</span>
+                      <span>TP1 (Conservative 1:1):</span>
                       <span className="font-semibold">{item.tp1}</span>
                     </div>
                     <div className="flex justify-between items-center text-teal-400">
-                      <span>TP2 (Target 2):</span>
+                      <span>TP2 (Structural 1:2):</span>
                       <span className="font-semibold">{item.tp2}</span>
                     </div>
                     <div className="flex justify-between items-center text-cyan-400">
-                      <span>TP3 (Structural):</span>
+                      <span>TP3 (Structural 1:3):</span>
                       <span className="font-semibold">{item.tp3}</span>
                     </div>
                     <div className="flex justify-between items-center text-rose-400 pt-1 border-t border-slate-800/60">
@@ -522,8 +563,224 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* PHASE 4: DETERMINISTIC 100-POINT SCORING BREAKDOWN & REASONS */}
+      {/* PHASE 5: RISK MANAGEMENT & POSITION SIZING CALCULATOR */}
       <div className="rounded-2xl bg-[#0E1320] border border-blue-500/40 p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-3">
+            <Calculator className="w-5 h-5 text-emerald-400" />
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+                <span>Phase 5 Risk Management Calculator:</span>
+                <span className="text-emerald-400 font-mono">{activeSignalDetails?.pair}</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Institutional lot sizing, capital preservation buffers, and multi-target profit projections
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+            <span>Pip Value:</span>
+            <span className="text-white font-bold">${riskCalculations?.pipValuePerLot || 10.0}/lot</span>
+          </div>
+        </div>
+
+        {/* Input & Output Split Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left: Input Controls (5 cols) */}
+          <div className="lg:col-span-5 space-y-4 bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              Account & Risk Parameters
+            </h4>
+
+            {/* Account Balance */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-slate-400 flex justify-between">
+                <span>Account Balance ($)</span>
+                <span className="font-mono text-white font-bold">${accountBalance.toLocaleString()}</span>
+              </label>
+              <div className="relative">
+                <DollarSign className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <input
+                  type="number"
+                  min="50"
+                  step="100"
+                  value={accountBalance}
+                  onChange={(e) => setAccountBalance(Number(e.target.value))}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm font-mono text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Quick Balance Presets */}
+              <div className="flex space-x-2 pt-1 font-mono text-xs">
+                {[500, 1000, 5000, 10000].map((bal) => (
+                  <button
+                    key={bal}
+                    onClick={() => setAccountBalance(bal)}
+                    className={`px-2 py-1 rounded-md border text-[11px] transition ${
+                      accountBalance === bal
+                        ? 'bg-blue-600 text-white border-blue-500'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    ${bal >= 1000 ? `${bal / 1000}k` : bal}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Risk Percentage */}
+            <div className="space-y-1.5 pt-2">
+              <label className="text-xs text-slate-400 flex justify-between">
+                <span>Risk Percentage Per Trade</span>
+                <span className="font-mono text-amber-400 font-bold">{riskPercentage}%</span>
+              </label>
+              <div className="relative">
+                <Percent className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <input
+                  type="number"
+                  min="0.1"
+                  max="10.0"
+                  step="0.1"
+                  value={riskPercentage}
+                  onChange={(e) => setRiskPercentage(Number(e.target.value))}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm font-mono text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Quick Risk Presets */}
+              <div className="flex space-x-2 pt-1 font-mono text-xs">
+                {[0.5, 1.0, 1.5, 2.0].map((pct) => (
+                  <button
+                    key={pct}
+                    onClick={() => setRiskPercentage(pct)}
+                    className={`px-2.5 py-1 rounded-md border text-[11px] transition ${
+                      riskPercentage === pct
+                        ? 'bg-emerald-600 text-white border-emerald-500'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Signal Levels Readout */}
+            <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800 space-y-1.5 text-xs font-mono pt-2">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Entry Anchor:</span>
+                <span className="text-white font-bold">{activeSignalDetails?.entry || activeSignalDetails?.price}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Stop Loss Anchor:</span>
+                <span className="text-rose-400 font-bold">{activeSignalDetails?.sl || '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Risk Distance:</span>
+                <span className="text-amber-400 font-bold">{riskCalculations?.riskPips || '0'} pips</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Calculated Metrics & Targets (7 cols) */}
+          <div className="lg:col-span-7 space-y-4">
+            {/* Top Metrics Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* Max Risk Capital */}
+              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1">
+                <span className="text-slate-400 text-[11px] uppercase tracking-wider block font-mono">Max Risk ($)</span>
+                <div className="text-xl font-bold font-mono text-rose-400">
+                  -${riskCalculations?.riskAmount || 10.0}
+                </div>
+                <span className="text-[10px] text-slate-500 block">{riskPercentage}% of ${accountBalance}</span>
+              </div>
+
+              {/* Recommended Lot Size */}
+              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-blue-500/30 space-y-1">
+                <span className="text-slate-400 text-[11px] uppercase tracking-wider block font-mono">Position Size</span>
+                <div className="text-xl font-bold font-mono text-blue-400">
+                  {riskCalculations?.positionSize?.standardLots || '0.04'} Lots
+                </div>
+                <span className="text-[10px] text-slate-400 block font-mono">
+                  {riskCalculations?.positionSize?.microLots || '4.0'} Micro Lots
+                </span>
+              </div>
+
+              {/* Total Units */}
+              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1 col-span-2 sm:col-span-1">
+                <span className="text-slate-400 text-[11px] uppercase tracking-wider block font-mono">Market Units</span>
+                <div className="text-xl font-bold font-mono text-white">
+                  {riskCalculations?.positionSize?.units?.toLocaleString() || '4,000'}
+                </div>
+                <span className="text-[10px] text-slate-500 block">Currency Units</span>
+              </div>
+            </div>
+
+            {/* Target Projections (TP1, TP2, TP3) */}
+            <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Multi-Target Reward Projections
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+                {/* TP1 */}
+                <div className="bg-slate-950/70 p-3 rounded-xl border border-emerald-500/30 space-y-1">
+                  <div className="flex justify-between items-center text-slate-400 text-[11px]">
+                    <span className="text-emerald-400 font-bold">TP1 (1:1.0)</span>
+                    <span>+{riskCalculations?.targets?.tp1?.pips || 0} pips</span>
+                  </div>
+                  <div className="text-base font-bold text-white">
+                    {riskCalculations?.targets?.tp1?.price || activeSignalDetails?.tp1}
+                  </div>
+                  <div className="text-xs text-emerald-400 font-bold">
+                    +${riskCalculations?.targets?.tp1?.profit || (accountBalance * 0.01)}
+                  </div>
+                </div>
+
+                {/* TP2 */}
+                <div className="bg-slate-950/70 p-3 rounded-xl border border-teal-500/30 space-y-1">
+                  <div className="flex justify-between items-center text-slate-400 text-[11px]">
+                    <span className="text-teal-400 font-bold">TP2 (1:2.0)</span>
+                    <span>+{riskCalculations?.targets?.tp2?.pips || 0} pips</span>
+                  </div>
+                  <div className="text-base font-bold text-white">
+                    {riskCalculations?.targets?.tp2?.price || activeSignalDetails?.tp2}
+                  </div>
+                  <div className="text-xs text-teal-400 font-bold">
+                    +${riskCalculations?.targets?.tp2?.profit || (accountBalance * 0.02)}
+                  </div>
+                </div>
+
+                {/* TP3 */}
+                <div className="bg-slate-950/70 p-3 rounded-xl border border-cyan-500/30 space-y-1">
+                  <div className="flex justify-between items-center text-slate-400 text-[11px]">
+                    <span className="text-cyan-400 font-bold">TP3 (1:3.0)</span>
+                    <span>+{riskCalculations?.targets?.tp3?.pips || 0} pips</span>
+                  </div>
+                  <div className="text-base font-bold text-white">
+                    {riskCalculations?.targets?.tp3?.price || activeSignalDetails?.tp3}
+                  </div>
+                  <div className="text-xs text-cyan-400 font-bold">
+                    +${riskCalculations?.targets?.tp3?.profit || (accountBalance * 0.03)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Safety & Leverage Warning */}
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start space-x-2 text-xs text-amber-300">
+              <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+              <p className="leading-relaxed">
+                <b>Capital Preservation Rule:</b> Never risk more than 1% to 2% of capital per trade. Calculated sizes protect against consecutive drawdown streaks. Real trade execution is prohibited.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PHASE 4: DETERMINISTIC 100-POINT SCORING BREAKDOWN & REASONS */}
+      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
             <Award className="w-5 h-5 text-amber-400" />
@@ -893,7 +1150,7 @@ export const Dashboard = ({
               ForexAI Analyzer Architecture Roadmap
             </h3>
             <p className="text-xs text-slate-400">
-              Phases 1, 2, 3, and 4 are complete. Ready for Phase 5 (Dynamic TP/SL & Risk Calculator).
+              Phases 1, 2, 3, 4, and 5 are complete. Ready for Phase 6 (TradingView Interactive Charts).
             </p>
           </div>
         </div>

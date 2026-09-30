@@ -3,6 +3,7 @@ import healthRoutes from './healthRoutes.js';
 import marketRoutes from './marketRoutes.js';
 import analysisRoutes from './analysisRoutes.js';
 import signalRoutes from './signalRoutes.js';
+import riskRoutes from './riskRoutes.js';
 
 const router = Router();
 
@@ -18,6 +19,9 @@ router.use('/analysis', analysisRoutes);
 // Deterministic Signal Engine (Phase 4)
 router.use('/signals', signalRoutes);
 
+// Dynamic TP/SL & Risk Management Engine (Phase 5)
+router.use('/risk', riskRoutes);
+
 // Base API route placeholder info
 router.get('/', (req, res) => {
   res.json({
@@ -30,6 +34,7 @@ router.get('/', (req, res) => {
       markets: '/api/markets',
       analysis: '/api/analysis',
       signals: '/api/signals',
+      risk: '/api/risk',
       auth: '/api/auth (Phase 1/Auth)',
       watchlist: '/api/watchlist (Phase 6)',
       backtest: '/api/backtest (Phase 10)',

@@ -1,2 +1,10 @@
-// Risk Management Service (Phase 5/10)
-export default {};
+export * from './tpslEngine.js';
+export * from './positionCalculator.js';
+
+import tpslEngine from './tpslEngine.js';
+import positionCalculator from './positionCalculator.js';
+
+export default {
+  ...tpslEngine,
+  ...positionCalculator,
+};
