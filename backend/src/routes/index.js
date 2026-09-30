@@ -4,6 +4,7 @@ import marketRoutes from './marketRoutes.js';
 import analysisRoutes from './analysisRoutes.js';
 import signalRoutes from './signalRoutes.js';
 import riskRoutes from './riskRoutes.js';
+import aiRoutes from './aiRoutes.js';
 
 const router = Router();
 
@@ -21,6 +22,9 @@ router.use('/signals', signalRoutes);
 
 // Dynamic TP/SL & Risk Management Engine (Phase 5)
 router.use('/risk', riskRoutes);
+
+// OpenAI Intelligence & Synthesis Engine (Phase 7)
+router.use('/ai', aiRoutes);
 
 // Base API route placeholder info
 router.get('/', (req, res) => {

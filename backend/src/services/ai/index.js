@@ -1,2 +1,4 @@
-// OpenAI Market Explanation Service (Phase 7)
-export default {};
+import { openaiService } from './openaiService.js';
+
+export { openaiService };
+export default openaiService;

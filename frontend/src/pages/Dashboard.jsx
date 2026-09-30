@@ -34,8 +34,10 @@ import {
   fetchMultiTimeframeAnalysis,
   evaluateAllSignals,
   calculateRisk,
+  fetchAiExplanation,
 } from '../services/api';
 import { TradingViewChart } from '../components/TradingViewChart';
+import { AiAnalysisCard } from '../components/AiAnalysisCard';
 
 
 const defaultFallbackPairs = [
@@ -183,7 +185,7 @@ const roadmapPhases = [
   { phase: 'Phase 4', title: 'Deterministic Signal Engine', status: 'completed', desc: '100pt rule engine (EMA 25, MACD 20, RSI 15, Struct 15, S/R 15, Vol 10), BUY/SELL/NO TRADE, MTF confirmation' },
   { phase: 'Phase 5', title: 'Dynamic TP/SL & Risk Calculator', status: 'completed', desc: 'Structural Entry, TP1, TP2, TP3, SL anchored to ATR/swings, lot sizing, and risk-to-reward calculation' },
   { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'completed', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
-  { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'upcoming', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
+  { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'completed', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'upcoming', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
   { phase: 'Phase 9', title: 'Telegram Notifications', status: 'upcoming', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
   { phase: 'Phase 10', title: 'Backtesting Engine', status: 'upcoming', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
@@ -212,6 +214,10 @@ export const Dashboard = ({
   const [accountBalance, setAccountBalance] = useState(1000);
   const [riskPercentage, setRiskPercentage] = useState(1.0);
   const [riskCalculations, setRiskCalculations] = useState(null);
+
+  // Phase 7 OpenAI Intelligence State
+  const [aiExplanation, setAiExplanation] = useState(null);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   // Load live quotes and evaluate signals
   const loadMarketAndSignals = async () => {
@@ -256,8 +262,20 @@ export const Dashboard = ({
     setLoadingSignal(false);
   };
 
+  // Load AI explanation for the selected pair & timeframe
+  const loadAiExplanation = async (pair, timeframe) => {
+    setLoadingAi(true);
+    const res = await fetchAiExplanation(pair, timeframe);
+    if (res.success && res.data) {
+      setAiExplanation(res.data);
+    }
+    setLoadingAi(false);
+  };
+
   // Load candles & indicators for the selected pair
   const loadPairDetails = async (pair, timeframe) => {
+    loadAiExplanation(pair, timeframe);
+
     const [candleRes, anaRes, mtfRes] = await Promise.all([
       fetchCandles(pair, timeframe, 100),
       fetchAnalysis(pair, timeframe),
@@ -337,16 +355,15 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 6 Complete
+                Phase 7 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Interactive TradingView Charts & Technical Overlay Engine Active
+                OpenAI Intelligence & Algorithmic Setup Synthesis Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Real-time TradingView Lightweight candlestick chart with dynamic EMA 20/50/200 overlays, volume histogram, and institutional Entry / TP1 / TP2 / TP3 / Stop Loss price rays.
-            </p>
-          </div>
+              Institutional AI synthesis detailing trend alignment, momentum confluence, market structure, invalidation conditions, and scenario risks without hallucinations or profit guarantees.
+            </p>          </div>
 
           <div className="flex items-center space-x-3">
             <button
@@ -609,6 +626,15 @@ export const Dashboard = ({
           height={480}
         />
       </div>
+
+      {/* PHASE 7: OPENAI INTELLIGENCE & SETUP SYNTHESIS */}
+      <AiAnalysisCard
+        aiData={aiExplanation}
+        loading={loadingAi}
+        onRefresh={() => loadAiExplanation(selectedPair.pair, selectedTimeframe)}
+        pair={selectedPair.pair}
+        timeframe={selectedTimeframe}
+      />
 
       {/* PHASE 5: RISK MANAGEMENT & POSITION SIZING CALCULATOR */}
       <div className="rounded-2xl bg-[#0E1320] border border-blue-500/40 p-6 space-y-6">

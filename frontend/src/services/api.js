@@ -196,4 +196,24 @@ export const fetchRiskParameters = async (pair, direction = 'BUY', timeframe = '
   }
 };
 
+// Phase 7: OpenAI Intelligence & Setup Synthesis
+export const fetchAiExplanation = async (pair, timeframe = '1h') => {
+  try {
+    const cleanPair = pair.replace('/', '');
+    const response = await api.get(`/ai/explain/${cleanPair}`, {
+      params: { timeframe },
+    });
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;
+
