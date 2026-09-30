@@ -7,6 +7,7 @@ import riskRoutes from './riskRoutes.js';
 import aiRoutes from './aiRoutes.js';
 import scannerRoutes from './scannerRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
+import backtestRoutes from './backtestRoutes.js';
 
 const router = Router();
 
@@ -33,6 +34,9 @@ router.use('/scanner', scannerRoutes);
 
 // Telegram Notifications & Alerts Engine (Phase 9)
 router.use('/notifications', notificationRoutes);
+
+// Historical Backtesting Engine (Phase 10)
+router.use('/backtest', backtestRoutes);
 
 // Base API route placeholder info
 router.get('/', (req, res) => {

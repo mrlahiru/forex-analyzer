@@ -309,5 +309,51 @@ export const updateNotificationSettings = async (settings) => {
   }
 };
 
+// Phase 10: Backtesting Engine Endpoints
+export const runBacktest = async (params) => {
+  try {
+    const response = await api.post('/backtest/run', params);
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const fetchBacktestResults = async () => {
+  try {
+    const response = await api.get('/backtest/results');
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const fetchBacktestStrategies = async () => {
+  try {
+    const response = await api.get('/backtest/strategies');
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;
 

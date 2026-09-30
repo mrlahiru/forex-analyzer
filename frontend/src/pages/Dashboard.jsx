@@ -41,11 +41,14 @@ import {
   fetchNotificationStatus,
   sendTestNotification,
   updateNotificationSettings,
+  runBacktest,
+  fetchBacktestResults,
 } from '../services/api';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { AiAnalysisCard } from '../components/AiAnalysisCard';
 import { ScannerConsole } from '../components/ScannerConsole';
 import { TelegramAlertConsole } from '../components/TelegramAlertConsole';
+import { BacktestConsole } from '../components/BacktestConsole';
 
 
 const defaultFallbackPairs = [
@@ -196,7 +199,7 @@ const roadmapPhases = [
   { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'completed', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'completed', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
   { phase: 'Phase 9', title: 'Telegram Notifications', status: 'completed', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
-  { phase: 'Phase 10', title: 'Backtesting Engine', status: 'upcoming', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
+  { phase: 'Phase 10', title: 'Backtesting Engine', status: 'completed', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
   { phase: 'Phase 11', title: 'Production Deployment', status: 'upcoming', desc: 'Docker Compose, GitHub Actions, environment security' },
 ];
 
@@ -235,6 +238,10 @@ export const Dashboard = ({
   // Phase 9 Telegram Notifications State
   const [telegramStatus, setTelegramStatus] = useState(null);
   const [sendingTestAlert, setSendingTestAlert] = useState(false);
+
+  // Phase 10 Backtesting Engine State
+  const [backtestData, setBacktestData] = useState(null);
+  const [backtestLoading, setBacktestLoading] = useState(false);
 
   // Load live quotes and evaluate signals
   const loadMarketAndSignals = async () => {
@@ -380,11 +387,26 @@ export const Dashboard = ({
     }
   };
 
+  // Phase 10 Backtest Handler
+  const handleRunBacktest = async (params) => {
+    setBacktestLoading(true);
+    const res = await runBacktest(params);
+    if (res.success && res.data) {
+      setBacktestData(res.data);
+    }
+    setBacktestLoading(false);
+  };
+
   useEffect(() => {
     loadMarketAndSignals();
     loadPairDetails(selectedPair.pair, selectedTimeframe);
     loadScanner();
     loadTelegramStatus();
+
+    // Initial backtest data load if cached
+    fetchBacktestResults().then((res) => {
+      if (res.success && res.data) setBacktestData(res.data);
+    });
 
     const interval = setInterval(loadMarketAndSignals, 15000);
     const scannerInterval = setInterval(loadScanner, 10000);
@@ -424,14 +446,14 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 9 Complete
+                Phase 10 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Telegram Notifications & Institutional Real-Time Alerts Active
+                Historical Strategy Backtesting & Quantitative Simulation Engine Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Automated Telegram Bot dispatches real-time setup alerts, target hit notifications (TP1/2/3), and disciplined Stop Loss executions directly to your mobile channel.
+              Institutional strategy backtester evaluates the 100-point rule model across historical bar datasets, calculating Win Rate %, Profit Factor, Drawdown %, and Equity Curve.
             </p>          </div>
 
           <div className="flex items-center space-x-3">
@@ -1303,6 +1325,14 @@ export const Dashboard = ({
         </div>
       </div>
 
+      {/* PHASE 10: HISTORICAL STRATEGY BACKTESTING ENGINE */}
+      <BacktestConsole
+        results={backtestData}
+        loading={backtestLoading}
+        onRun={handleRunBacktest}
+        initialPair={selectedPair.pair}
+      />
+
       {/* Master 11-Phase Architecture Roadmap */}
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex items-center space-x-3">
@@ -1312,7 +1342,7 @@ export const Dashboard = ({
               ForexAI Analyzer Architecture Roadmap
             </h3>
             <p className="text-xs text-slate-400">
-              Phases 1, 2, 3, 4, and 5 are complete. Ready for Phase 6 (TradingView Interactive Charts).
+              Phases 1 through 10 are complete. Ready for Phase 11 (Production Deployment & Docker).
             </p>
           </div>
         </div>
