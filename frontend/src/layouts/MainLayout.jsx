@@ -55,6 +55,8 @@ export const MainLayout = ({ children }) => {
             latency,
             onRefreshHealth: checkStatus,
             isRefreshing,
+            activeTab,
+            setActiveTab,
           })}
         </main>
       </div>

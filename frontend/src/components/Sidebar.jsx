@@ -13,14 +13,14 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, active: true },
-  { id: 'markets', name: 'Markets', icon: TrendingUp, active: false, badge: 'Phase 2' },
-  { id: 'signals', name: 'Signals', icon: Radio, active: false, badge: 'Phase 4' },
-  { id: 'watchlist', name: 'Watchlist', icon: Star, active: false, badge: 'Phase 6' },
-  { id: 'backtesting', name: 'Backtesting', icon: TestTube2, active: false, badge: 'Phase 10' },
-  { id: 'alerts', name: 'Alerts', icon: BellRing, active: false, badge: 'Phase 9' },
-  { id: 'deployment', name: 'Deployment', icon: Boxes, active: false, badge: 'Phase 11' },
-  { id: 'settings', name: 'Settings', icon: Settings, active: false },
+  { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, badge: 'Master' },
+  { id: 'markets', name: 'Markets', icon: TrendingUp, badge: 'Live' },
+  { id: 'signals', name: 'Signals', icon: Radio, badge: '100-Pt' },
+  { id: 'watchlist', name: 'Watchlist', icon: Star, badge: 'Custom' },
+  { id: 'backtesting', name: 'Backtesting', icon: TestTube2, badge: 'Quant' },
+  { id: 'alerts', name: 'Alerts & Scanner', icon: BellRing, badge: 'Auto' },
+  { id: 'deployment', name: 'Deployment', icon: Boxes, badge: 'Docker' },
+  { id: 'settings', name: 'Settings', icon: Settings, badge: 'Config' },
 ];
 
 export const Sidebar = ({ activeTab = 'dashboard', setActiveTab }) => {

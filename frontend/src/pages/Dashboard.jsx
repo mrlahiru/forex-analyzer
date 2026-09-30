@@ -26,6 +26,13 @@ import {
   ShieldAlert,
   ArrowUpRight,
   ArrowDownRight,
+  LayoutDashboard,
+  Radio,
+  Star,
+  TestTube2,
+  BellRing,
+  Boxes,
+  Settings,
 } from 'lucide-react';
 import {
   fetchMarkets,
@@ -50,6 +57,8 @@ import { ScannerConsole } from '../components/ScannerConsole';
 import { TelegramAlertConsole } from '../components/TelegramAlertConsole';
 import { BacktestConsole } from '../components/BacktestConsole';
 import { ProductionDeploymentConsole } from '../components/ProductionDeploymentConsole';
+import { WatchlistConsole } from '../components/WatchlistConsole';
+import { SettingsConsole } from '../components/SettingsConsole';
 
 
 const defaultFallbackPairs = [
@@ -211,6 +220,8 @@ export const Dashboard = ({
   latency,
   onRefreshHealth,
   isRefreshing,
+  activeTab = 'dashboard',
+  setActiveTab,
 }) => {
   const [pairsData, setPairsData] = useState(defaultFallbackPairs);
   const [selectedPair, setSelectedPair] = useState(defaultFallbackPairs[0]);
@@ -439,6 +450,15 @@ export const Dashboard = ({
   const isSell = activeSignalDetails?.signal === 'SELL';
   const isNoTrade = activeSignalDetails?.signal === 'NO_TRADE' || activeSignalDetails?.signal === 'NO TRADE';
 
+  const isMaster = activeTab === 'dashboard';
+  const showMarkets = isMaster || activeTab === 'markets';
+  const showSignals = isMaster || activeTab === 'signals';
+  const showWatchlist = activeTab === 'watchlist';
+  const showBacktesting = isMaster || activeTab === 'backtesting';
+  const showAlerts = isMaster || activeTab === 'alerts';
+  const showDeployment = isMaster || activeTab === 'deployment';
+  const showSettings = activeTab === 'settings';
+
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Top Banner: Operational Status */}
@@ -509,7 +529,83 @@ export const Dashboard = ({
         </div>
       </div>
 
+      {/* Workspace Quick-Bar Selector */}
+      <div className="flex items-center justify-between bg-[#0E1320] border border-slate-800 p-2 rounded-2xl overflow-x-auto shadow-md">
+        <div className="flex items-center space-x-1">
+          {[
+            { id: 'dashboard', label: 'All Workspaces', icon: LayoutDashboard },
+            { id: 'markets', label: 'Markets & Chart', icon: TrendingUp },
+            { id: 'signals', label: 'Signals & Rules', icon: Radio },
+            { id: 'watchlist', label: 'Watchlist', icon: Star },
+            { id: 'backtesting', label: 'Backtesting', icon: TestTube2 },
+            { id: 'alerts', label: 'Alerts & Scanner', icon: BellRing },
+            { id: 'deployment', label: 'Deployment', icon: Boxes },
+            { id: 'settings', label: 'Settings', icon: Settings },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isCurrent = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab && setActiveTab(tab.id)}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition ${
+                  isCurrent
+                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="whitespace-nowrap">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {activeTab !== 'dashboard' && (
+          <button
+            onClick={() => setActiveTab && setActiveTab('dashboard')}
+            className="hidden sm:flex items-center space-x-1 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-blue-400 border border-slate-700 transition"
+          >
+            <span>Show Full Station</span>
+            <ExternalLink className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+
+      {/* DEDICATED WORKSPACE: SETTINGS CONSOLE */}
+      {showSettings && (
+        <SettingsConsole
+          healthInfo={healthInfo}
+          providerStatus={providerStatus}
+          defaultBalance={accountBalance}
+          defaultRisk={riskPercentage}
+          onSavePreferences={(prefs) => {
+            setAccountBalance(prefs.balance);
+            setRiskPercentage(prefs.riskPct);
+            setSelectedTimeframe(prefs.defaultTf);
+          }}
+        />
+      )}
+
+      {/* DEDICATED WORKSPACE: WATCHLIST CONSOLE */}
+      {showWatchlist && (
+        <WatchlistConsole
+          pairsData={pairsData}
+          selectedPair={selectedPair}
+          onSelectPair={(pair) => {
+            setSelectedPair(pair);
+            loadPairDetails(pair.pair, selectedTimeframe);
+          }}
+          onViewChart={(pair) => {
+            setSelectedPair(pair);
+            loadPairDetails(pair.pair, selectedTimeframe);
+            setActiveTab && setActiveTab('markets');
+          }}
+        />
+      )}
+
       {/* Market Overview Section */}
+      {showMarkets && (
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -675,28 +771,33 @@ export const Dashboard = ({
           })}
         </div>
       </div>
+      )}
 
-      {/* PHASE 8: AUTOMATIC MARKET SCANNER & BACKGROUND ENGINE */}
-      <ScannerConsole
-        scannerData={scannerData}
-        events={scannerEvents}
-        loading={scanningManual}
-        onRunScan={handleManualScan}
-        onSelectPair={(pairName) => {
-          const matched = pairsData.find((p) => p.pair === pairName);
-          if (matched) setSelectedPair(matched);
-        }}
-      />
+      {/* PHASE 8 & 9: AUTOMATIC MARKET SCANNER & TELEGRAM ALERTS */}
+      {showAlerts && (
+        <>
+          <ScannerConsole
+            scannerData={scannerData}
+            events={scannerEvents}
+            loading={scanningManual}
+            onRunScan={handleManualScan}
+            onSelectPair={(pairName) => {
+              const matched = pairsData.find((p) => p.pair === pairName);
+              if (matched) setSelectedPair(matched);
+            }}
+          />
 
-      {/* PHASE 9: TELEGRAM NOTIFICATIONS & INSTITUTIONAL ALERTS */}
-      <TelegramAlertConsole
-        status={telegramStatus}
-        loading={sendingTestAlert}
-        onSendTest={handleSendTelegramTest}
-        onUpdatePreferences={handleUpdateTelegramPreferences}
-      />
+          <TelegramAlertConsole
+            status={telegramStatus}
+            loading={sendingTestAlert}
+            onSendTest={handleSendTelegramTest}
+            onUpdatePreferences={handleUpdateTelegramPreferences}
+          />
+        </>
+      )}
 
       {/* PHASE 6: INTERACTIVE TRADINGVIEW LIGHTWEIGHT CHARTS */}
+      {(showMarkets || showWatchlist || isMaster) && (
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
@@ -740,17 +841,21 @@ export const Dashboard = ({
           height={480}
         />
       </div>
+      )}
 
       {/* PHASE 7: OPENAI INTELLIGENCE & SETUP SYNTHESIS */}
-      <AiAnalysisCard
-        aiData={aiExplanation}
-        loading={loadingAi}
-        onRefresh={() => loadAiExplanation(selectedPair.pair, selectedTimeframe)}
-        pair={selectedPair.pair}
-        timeframe={selectedTimeframe}
-      />
+      {showSignals && (
+        <AiAnalysisCard
+          aiData={aiExplanation}
+          loading={loadingAi}
+          onRefresh={() => loadAiExplanation(selectedPair.pair, selectedTimeframe)}
+          pair={selectedPair.pair}
+          timeframe={selectedTimeframe}
+        />
+      )}
 
       {/* PHASE 5: RISK MANAGEMENT & POSITION SIZING CALCULATOR */}
+      {(showSignals || showWatchlist || isMaster) && (
       <div className="rounded-2xl bg-[#0E1320] border border-blue-500/40 p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
@@ -965,9 +1070,12 @@ export const Dashboard = ({
           </div>
         </div>
       </div>
+      )}
 
       {/* PHASE 4: DETERMINISTIC 100-POINT SCORING BREAKDOWN & REASONS */}
-      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-6">
+      {showSignals && (
+        <>
+          <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
             <Award className="w-5 h-5 text-amber-400" />
@@ -1273,8 +1381,11 @@ export const Dashboard = ({
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Candlestick Feed Table */}
+      {showMarkets && (
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -1327,70 +1438,77 @@ export const Dashboard = ({
           </table>
         </div>
       </div>
+      )}
 
       {/* PHASE 10: HISTORICAL STRATEGY BACKTESTING ENGINE */}
-      <BacktestConsole
-        results={backtestData}
-        loading={backtestLoading}
-        onRun={handleRunBacktest}
-        initialPair={selectedPair.pair}
-      />
+      {showBacktesting && (
+        <BacktestConsole
+          results={backtestData}
+          loading={backtestLoading}
+          onRun={handleRunBacktest}
+          initialPair={selectedPair.pair}
+        />
+      )}
 
       {/* PHASE 11: PRODUCTION DOCKER DEPLOYMENT & ORCHESTRATION */}
-      <ProductionDeploymentConsole />
+      {showDeployment && (
+        <>
+          <ProductionDeploymentConsole />
 
-      {/* Master 11-Phase Architecture Roadmap */}
-      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
-        <div className="flex items-center space-x-3">
-          <Layers className="w-5 h-5 text-blue-400" />
-          <div>
-            <h3 className="text-base font-bold text-white">
-              ForexAI Analyzer Architecture Roadmap
-            </h3>
-            <p className="text-xs text-slate-400">
-              All 11 architectural phases are fully implemented, verified, and production-ready.
-            </p>
-          </div>
-        </div>
+          {/* Master 11-Phase Architecture Roadmap */}
+          <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
+            <div className="flex items-center space-x-3">
+              <Layers className="w-5 h-5 text-blue-400" />
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  ForexAI Analyzer Architecture Roadmap
+                </h3>
+                <p className="text-xs text-slate-400">
+                  All 11 architectural phases are fully implemented, verified, and production-ready.
+                </p>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {roadmapPhases.map((phase) => {
-            const isDone = phase.status === 'completed';
-            return (
-              <div
-                key={phase.phase}
-                className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition ${
-                  isDone
-                    ? 'bg-blue-950/20 border-blue-500/40 text-slate-200'
-                    : 'bg-slate-900/40 border-slate-800/80 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`font-mono font-bold ${
-                      isDone ? 'text-blue-400' : 'text-slate-500'
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {roadmapPhases.map((phase) => {
+                const isDone = phase.status === 'completed';
+                return (
+                  <div
+                    key={phase.phase}
+                    className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition ${
+                      isDone
+                        ? 'bg-blue-950/20 border-blue-500/40 text-slate-200'
+                        : 'bg-slate-900/40 border-slate-800/80 text-slate-400'
                     }`}
                   >
-                    {phase.phase}
-                  </span>
-                  {isDone ? (
-                    <span className="flex items-center space-x-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      <CheckCircle2 className="w-3 h-3" />
-                      <span>Ready</span>
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">
-                      Next Up
-                    </span>
-                  )}
-                </div>
-                <div className="font-semibold text-white text-xs">{phase.title}</div>
-                <div className="text-[11px] text-slate-400 leading-relaxed">{phase.desc}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`font-mono font-bold ${
+                          isDone ? 'text-blue-400' : 'text-slate-500'
+                        }`}
+                      >
+                        {phase.phase}
+                      </span>
+                      {isDone ? (
+                        <span className="flex items-center space-x-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Ready</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">
+                          Next Up
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-semibold text-white text-xs">{phase.title}</div>
+                    <div className="text-[11px] text-slate-400 leading-relaxed">{phase.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
