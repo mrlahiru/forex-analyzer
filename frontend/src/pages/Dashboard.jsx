@@ -35,9 +35,13 @@ import {
   evaluateAllSignals,
   calculateRisk,
   fetchAiExplanation,
+  fetchScannerStatus,
+  triggerManualScan,
+  fetchScannerEvents,
 } from '../services/api';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { AiAnalysisCard } from '../components/AiAnalysisCard';
+import { ScannerConsole } from '../components/ScannerConsole';
 
 
 const defaultFallbackPairs = [
@@ -186,7 +190,7 @@ const roadmapPhases = [
   { phase: 'Phase 5', title: 'Dynamic TP/SL & Risk Calculator', status: 'completed', desc: 'Structural Entry, TP1, TP2, TP3, SL anchored to ATR/swings, lot sizing, and risk-to-reward calculation' },
   { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'completed', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
   { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'completed', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
-  { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'upcoming', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
+  { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'completed', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
   { phase: 'Phase 9', title: 'Telegram Notifications', status: 'upcoming', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
   { phase: 'Phase 10', title: 'Backtesting Engine', status: 'upcoming', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
   { phase: 'Phase 11', title: 'Production Deployment', status: 'upcoming', desc: 'Docker Compose, GitHub Actions, environment security' },
@@ -218,6 +222,11 @@ export const Dashboard = ({
   // Phase 7 OpenAI Intelligence State
   const [aiExplanation, setAiExplanation] = useState(null);
   const [loadingAi, setLoadingAi] = useState(false);
+
+  // Phase 8 Automatic Market Scanner State
+  const [scannerData, setScannerData] = useState(null);
+  const [scannerEvents, setScannerEvents] = useState([]);
+  const [scanningManual, setScanningManual] = useState(false);
 
   // Load live quotes and evaluate signals
   const loadMarketAndSignals = async () => {
@@ -319,12 +328,39 @@ export const Dashboard = ({
     }
   };
 
+  // Load scanner status and recent lifecycle events
+  const loadScanner = async () => {
+    const [statusRes, eventsRes] = await Promise.all([
+      fetchScannerStatus(),
+      fetchScannerEvents(25),
+    ]);
+    if (statusRes.success && statusRes.data) {
+      setScannerData(statusRes.data);
+    }
+    if (eventsRes.success && eventsRes.data) {
+      setScannerEvents(eventsRes.data);
+    }
+  };
+
+  const handleManualScan = async () => {
+    setScanningManual(true);
+    await triggerManualScan(selectedTimeframe);
+    await loadScanner();
+    await loadMarketAndSignals();
+    setScanningManual(false);
+  };
+
   useEffect(() => {
     loadMarketAndSignals();
     loadPairDetails(selectedPair.pair, selectedTimeframe);
+    loadScanner();
 
     const interval = setInterval(loadMarketAndSignals, 15000);
-    return () => clearInterval(interval);
+    const scannerInterval = setInterval(loadScanner, 10000);
+    return () => {
+      clearInterval(interval);
+      clearInterval(scannerInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -355,14 +391,14 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 7 Complete
+                Phase 8 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                OpenAI Intelligence & Algorithmic Setup Synthesis Active
+                Automatic Market Scanner & Background Lifecycle Engine Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Institutional AI synthesis detailing trend alignment, momentum confluence, market structure, invalidation conditions, and scenario risks without hallucinations or profit guarantees.
+              Autonomous node-cron scheduler scans all 7 Forex pairs every minute, monitors live price action, and records real-time TP1, TP2, TP3, and Stop Loss events.
             </p>          </div>
 
           <div className="flex items-center space-x-3">
@@ -581,6 +617,18 @@ export const Dashboard = ({
           })}
         </div>
       </div>
+
+      {/* PHASE 8: AUTOMATIC MARKET SCANNER & BACKGROUND ENGINE */}
+      <ScannerConsole
+        scannerData={scannerData}
+        events={scannerEvents}
+        loading={scanningManual}
+        onRunScan={handleManualScan}
+        onSelectPair={(pairName) => {
+          const matched = pairsData.find((p) => p.pair === pairName);
+          if (matched) setSelectedPair(matched);
+        }}
+      />
 
       {/* PHASE 6: INTERACTIVE TRADINGVIEW LIGHTWEIGHT CHARTS */}
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">

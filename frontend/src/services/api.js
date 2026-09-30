@@ -215,5 +215,53 @@ export const fetchAiExplanation = async (pair, timeframe = '1h') => {
   }
 };
 
+// Phase 8: Automatic Market Scanner Endpoints
+export const fetchScannerStatus = async () => {
+  try {
+    const response = await api.get('/scanner/status');
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const triggerManualScan = async (timeframe = '1h') => {
+  try {
+    const response = await api.post('/scanner/run', { timeframe });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const fetchScannerEvents = async (limit = 25) => {
+  try {
+    const response = await api.get('/scanner/events', {
+      params: { limit },
+    });
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;
 

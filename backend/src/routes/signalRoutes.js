@@ -6,7 +6,12 @@ import {
   getSignalById,
 } from '../controllers/signalController.js';
 
+import { getScannerEvents } from '../controllers/scannerController.js';
+
 const router = Router();
+
+// Signal lifecycle events (Phase 8)
+router.get('/events', getScannerEvents);
 
 // Active monitored signals
 router.get('/active', getActiveSignals);

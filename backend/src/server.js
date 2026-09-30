@@ -2,6 +2,7 @@ import http from 'http';
 import app from './app.js';
 import config from './config/index.js';
 import { connectDB } from './config/db.js';
+import { initScheduledJobs } from './jobs/index.js';
 
 const server = http.createServer(app);
 
@@ -17,6 +18,9 @@ const startServer = async () => {
     console.log(`  🩺 Health:      http://localhost:${config.port}/api/health`);
     console.log(`  ⚙️  Environment: ${config.nodeEnv}`);
     console.log('====================================================');
+
+    // Initialize scheduled background jobs (Phase 8 Market Scanner)
+    initScheduledJobs();
   });
 };
 
