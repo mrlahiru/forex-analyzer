@@ -4,6 +4,7 @@ import {
   TrendingDown,
   RefreshCw,
   CheckCircle2,
+  AlertCircle,
   Clock,
   Layers,
   ArrowRight,
@@ -12,54 +13,53 @@ import {
   Database,
   ExternalLink,
   CandlestickChart,
-  Radio,
+  Activity,
+  Gauge,
+  Sliders,
+  Target,
+  BarChart3,
 } from 'lucide-react';
-import { fetchMarkets, fetchCandles } from '../services/api';
+import {
+  fetchMarkets,
+  fetchCandles,
+  fetchAnalysis,
+  fetchMultiTimeframeAnalysis,
+} from '../services/api';
 
 const defaultFallbackPairs = [
   {
     pair: 'EUR/USD',
-    price: 1.08420,
+    price: 1.0842,
     change: 0.0034,
     changePercent: 0.34,
     trend: 'Bullish (Above EMA 50/200)',
     signal: 'BUY',
     score: 84,
     confidence: 'Strong Setup',
-    entry: 1.08420,
-    tp1: 1.08520,
-    tp2: 1.08650,
-    tp3: 1.08800,
-    sl: 1.08280,
+    entry: 1.0842,
+    tp1: 1.0852,
+    tp2: 1.0865,
+    tp3: 1.088,
+    sl: 1.0828,
     rr: '1:2.4',
     timeframe: '1h',
-    reasons: [
-      'EMA 50 crossed above EMA 200 (Golden Cross)',
-      'RSI is 61 (Healthy Bullish Momentum)',
-      'Higher-High market structure confirmed',
-    ],
   },
   {
     pair: 'GBP/USD',
-    price: 1.29810,
+    price: 1.2981,
     change: -0.0021,
     changePercent: -0.21,
     trend: 'Bearish Breakdown',
     signal: 'SELL',
     score: 78,
     confidence: 'Strong Setup',
-    entry: 1.29810,
-    tp1: 1.29650,
-    tp2: 1.29420,
-    tp3: 1.29100,
-    sl: 1.30050,
+    entry: 1.2981,
+    tp1: 1.2965,
+    tp2: 1.2942,
+    tp3: 1.291,
+    sl: 1.3005,
     rr: '1:2.9',
     timeframe: '4h',
-    reasons: [
-      'Price rejected key 4H resistance zone',
-      'MACD histogram turned bearish',
-      'Lower-Low breakdown on 15M / 1H',
-    ],
   },
   {
     pair: 'USD/JPY',
@@ -77,15 +77,10 @@ const defaultFallbackPairs = [
     sl: null,
     rr: '—',
     timeframe: '1h',
-    reasons: [
-      'Choppy price action within tight range',
-      'RSI is neutral at 49.5',
-      'Score below 60 threshold (No deterministic edge)',
-    ],
   },
   {
     pair: 'USD/CHF',
-    price: 0.88450,
+    price: 0.8845,
     change: -0.0011,
     changePercent: -0.12,
     trend: 'Neutral / Range Bound',
@@ -99,56 +94,44 @@ const defaultFallbackPairs = [
     sl: null,
     rr: '—',
     timeframe: '15m',
-    reasons: [
-      'Multi-timeframe disagreement (1D Bullish vs 15M Bearish)',
-      'Awaiting breakout confirmation',
-    ],
   },
   {
     pair: 'AUD/USD',
-    price: 0.65340,
+    price: 0.6534,
     change: 0.0029,
     changePercent: 0.45,
     trend: 'Bullish Pullback',
     signal: 'BUY',
     score: 76,
     confidence: 'Moderate Setup',
-    entry: 0.65340,
-    tp1: 0.65480,
-    tp2: 0.65650,
-    tp3: 0.65900,
-    sl: 0.65150,
+    entry: 0.6534,
+    tp1: 0.6548,
+    tp2: 0.6565,
+    tp3: 0.659,
+    sl: 0.6515,
     rr: '1:2.1',
     timeframe: '1h',
-    reasons: [
-      'Support bounce at 0.6520 with pin bar',
-      'MACD bullish divergence on 1H chart',
-    ],
   },
   {
     pair: 'USD/CAD',
-    price: 1.39120,
+    price: 1.3912,
     change: -0.0022,
     changePercent: -0.16,
     trend: 'Bearish Continuation',
     signal: 'SELL',
     score: 74,
     confidence: 'Moderate Setup',
-    entry: 1.39120,
-    tp1: 1.38950,
-    tp2: 1.38720,
-    tp3: 1.38400,
-    sl: 1.39380,
+    entry: 1.3912,
+    tp1: 1.3895,
+    tp2: 1.3872,
+    tp3: 1.384,
+    sl: 1.3938,
     rr: '1:2.8',
     timeframe: '1h',
-    reasons: [
-      'Rejected EMA 20 dynamic resistance',
-      'Bearish structural lower high formation',
-    ],
   },
   {
     pair: 'NZD/USD',
-    price: 0.58910,
+    price: 0.5891,
     change: 0.0016,
     changePercent: 0.27,
     trend: 'Consolidation',
@@ -162,7 +145,6 @@ const defaultFallbackPairs = [
     sl: null,
     rr: '—',
     timeframe: '1h',
-    reasons: ['Consolidation below major supply zone', 'Low volume compression'],
   },
 ];
 
@@ -171,7 +153,7 @@ const TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
 const roadmapPhases = [
   { phase: 'Phase 1', title: 'Project Initialization', status: 'completed', desc: 'React, Vite, Tailwind, Express (5001), CORS, MongoDB schema, Health check' },
   { phase: 'Phase 2', title: 'Market Data Layer', status: 'completed', desc: 'Twelve Data API abstraction, OANDA/AlphaVantage fallbacks, candlestick ingestion & OHLCV endpoints' },
-  { phase: 'Phase 3', title: 'Technical Analysis Engine', status: 'upcoming', desc: 'EMA 20/50/200, RSI, MACD, ATR, Market Structure & S/R recognition' },
+  { phase: 'Phase 3', title: 'Technical Analysis Engine', status: 'completed', desc: 'EMA 20/50/200, RSI (Wilder), MACD (12,26,9), ATR, Market Structure (HH/HL/LH/LL, Breakout/Consolidation), and Dynamic S/R zones' },
   { phase: 'Phase 4', title: 'Signal Scoring Engine', status: 'upcoming', desc: 'Deterministic 100pt rule engine, BUY/SELL/NO TRADE, Multi-timeframe confirmation' },
   { phase: 'Phase 5', title: 'Dynamic TP/SL Engine', status: 'upcoming', desc: 'Non-arbitrary ATR & structural Entry, TP1, TP2, TP3, SL, Risk Calculator' },
   { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'upcoming', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
@@ -194,16 +176,16 @@ export const Dashboard = ({
   const [selectedPair, setSelectedPair] = useState(defaultFallbackPairs[0]);
   const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
   const [candlesData, setCandlesData] = useState([]);
-  const [loadingCandles, setLoadingCandles] = useState(false);
+  const [analysisData, setAnalysisData] = useState(null);
+  const [mtfData, setMtfData] = useState(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [feedSource, setFeedSource] = useState('Simulation Fallback');
 
-  // Load real quotes from backend /api/markets
+  // Load quotes from backend /api/markets
   const loadMarketQuotes = async () => {
     const res = await fetchMarkets();
     if (res.success && res.data?.markets?.length > 0) {
       setFeedSource(res.data.isLive ? `Live (${res.data.activeProvider})` : 'Simulation Fallback');
-      
-      // Merge live prices with default signal parameters
       setPairsData((prev) =>
         prev.map((item) => {
           const liveMatch = res.data.markets.find((m) => m.pair === item.pair);
@@ -221,26 +203,48 @@ export const Dashboard = ({
     }
   };
 
-  // Load real candlestick series from backend /api/markets/:pair/candles
+  // Load real candles
   const loadCandles = async (pair, timeframe) => {
-    setLoadingCandles(true);
     const res = await fetchCandles(pair, timeframe, 15);
     if (res.success && res.data?.candles) {
       setCandlesData(res.data.candles);
     }
-    setLoadingCandles(false);
+  };
+
+  // Load technical analysis and multi-timeframe concordance
+  const loadAnalysis = async (pair, timeframe) => {
+    setLoadingAnalysis(true);
+    const [anaRes, mtfRes] = await Promise.all([
+      fetchAnalysis(pair, timeframe),
+      fetchMultiTimeframeAnalysis(pair),
+    ]);
+
+    if (anaRes.success) {
+      setAnalysisData(anaRes.data);
+    }
+    if (mtfRes.success) {
+      setMtfData(mtfRes.data);
+    }
+    setLoadingAnalysis(false);
   };
 
   useEffect(() => {
     loadMarketQuotes();
     loadCandles(selectedPair.pair, selectedTimeframe);
+    loadAnalysis(selectedPair.pair, selectedTimeframe);
+
     const interval = setInterval(loadMarketQuotes, 15000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     loadCandles(selectedPair.pair, selectedTimeframe);
+    loadAnalysis(selectedPair.pair, selectedTimeframe);
   }, [selectedPair.pair, selectedTimeframe]);
+
+  const indicators = analysisData?.indicators;
+  const structure = analysisData?.marketStructure;
+  const sr = analysisData?.supportResistance;
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -250,14 +254,14 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 2 Complete
+                Phase 3 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Market Data Provider Abstraction Active
+                Technical Analysis & Market Structure Engine Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Twelve Data provider abstraction with multi-provider fallbacks (OANDA, Alpha Vantage, Polygon, Simulator), multi-timeframe candles, and REST endpoints are verified.
+              Quantitative indicators (EMA 20/50/200, SMA 50, RSI 14, MACD, ATR), dynamic support/resistance clustering, and swing-based market structure recognition are fully operational.
             </p>
           </div>
 
@@ -267,20 +271,21 @@ export const Dashboard = ({
                 onRefreshHealth();
                 loadMarketQuotes();
                 loadCandles(selectedPair.pair, selectedTimeframe);
+                loadAnalysis(selectedPair.pair, selectedTimeframe);
               }}
-              disabled={isRefreshing}
+              disabled={isRefreshing || loadingAnalysis}
               className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition active:scale-95 disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-400' : ''}`} />
-              <span>{isRefreshing ? 'Syncing...' : 'Sync Market Data'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loadingAnalysis ? 'animate-spin text-blue-400' : ''}`} />
+              <span>{loadingAnalysis ? 'Analyzing...' : 'Recalculate Analysis'}</span>
             </button>
             <a
-              href="http://localhost:5001/api/markets"
+              href={`http://localhost:5001/api/analysis/${selectedPair.pair.replace('/', '')}?timeframe=${selectedTimeframe}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-xs font-semibold text-blue-400 border border-blue-500/30 transition"
             >
-              <span>Markets JSON</span>
+              <span>Analysis JSON</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -289,24 +294,32 @@ export const Dashboard = ({
         {/* Live Diagnostics Mini-Bar */}
         <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Active Provider</span>
-            <span className="text-blue-400 font-semibold uppercase">{providerStatus?.activeProvider || 'twelve_data'}</span>
+            <span className="text-slate-500 block text-[10px] uppercase">Active Pair & Timeframe</span>
+            <span className="text-blue-400 font-semibold">{selectedPair.pair} ({selectedTimeframe})</span>
           </div>
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Data Feed Mode</span>
-            <span className={providerStatus?.isLive ? 'text-emerald-400 font-semibold' : 'text-cyan-400 font-semibold'}>
-              {feedSource}
+            <span className="text-slate-500 block text-[10px] uppercase">Quantitative Bias</span>
+            <span className={`font-semibold ${
+              analysisData?.overallBias === 'BULLISH'
+                ? 'text-emerald-400'
+                : analysisData?.overallBias === 'BEARISH'
+                ? 'text-rose-400'
+                : 'text-amber-400'
+            }`}>
+              {analysisData?.overallBias || 'ANALYZING...'}
             </span>
           </div>
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Database State</span>
-            <span className={healthInfo?.database?.connected ? 'text-emerald-400 font-semibold' : 'text-amber-400 font-semibold'}>
-              {healthInfo?.database?.state || 'offline'}
+            <span className="text-slate-500 block text-[10px] uppercase">Market Structure</span>
+            <span className="text-teal-400 font-semibold">
+              {structure?.state || 'CALCULATING'}
             </span>
           </div>
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Supported Pairs</span>
-            <span className="text-slate-300 font-semibold">{pairsData.length} FX Pairs</span>
+            <span className="text-slate-500 block text-[10px] uppercase">MTF Consensus</span>
+            <span className="text-slate-300 font-semibold">
+              {mtfData?.consensus?.replace(/_/g, ' ') || 'SYNCHRONIZING'}
+            </span>
           </div>
         </div>
       </div>
@@ -319,7 +332,7 @@ export const Dashboard = ({
               Market Overview & Signal Matrix
             </h2>
             <p className="text-xs text-slate-400">
-              Live quotes and multi-target setups across 7 core currency pairs
+              Select any currency pair to inspect quantitative indicators and structural swing levels
             </p>
           </div>
 
@@ -376,7 +389,9 @@ export const Dashboard = ({
 
                   <div className="text-right">
                     <div className="font-mono text-base font-bold text-white tracking-tight">
-                      {typeof item.price === 'number' ? item.price.toFixed(item.pair.includes('JPY') ? 2 : 5) : item.price}
+                      {typeof item.price === 'number'
+                        ? item.price.toFixed(item.pair.includes('JPY') ? 2 : 5)
+                        : item.price}
                     </div>
                     <div
                       className={`text-xs font-mono font-medium flex items-center justify-end space-x-1 ${
@@ -410,11 +425,7 @@ export const Dashboard = ({
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          isBuy
-                            ? 'bg-emerald-400'
-                            : isSell
-                            ? 'bg-rose-400'
-                            : 'bg-slate-500'
+                          isBuy ? 'bg-emerald-400' : isSell ? 'bg-rose-400' : 'bg-slate-500'
                         }`}
                       ></span>
                       <span>{item.signal}</span>
@@ -480,6 +491,282 @@ export const Dashboard = ({
         </div>
       </div>
 
+      {/* PHASE 3 DEEP TECHNICAL ANALYSIS CONSOLE */}
+      <div className="rounded-2xl bg-[#0E1320] border border-blue-500/30 p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-3">
+            <Sliders className="w-5 h-5 text-blue-400" />
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+                <span>Phase 3 Quantitative Indicator Engine:</span>
+                <span className="text-blue-400 font-mono">{selectedPair.pair} ({selectedTimeframe})</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Mathematical indicator series, dynamic support/resistance zones, and structural state
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <span className="px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900 border border-slate-800 text-slate-300">
+              Bias: <span className={analysisData?.overallBias === 'BULLISH' ? 'text-emerald-400' : analysisData?.overallBias === 'BEARISH' ? 'text-rose-400' : 'text-amber-400'}>{analysisData?.overallBias || '...'}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Quantitative Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Trend Indicators (EMAs & SMA) */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <span className="flex items-center space-x-1.5">
+                <TrendingUp className="w-4 h-4 text-blue-400" />
+                <span>Trend Stack</span>
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                {indicators?.trend?.alignment?.replace(/_/g, ' ') || 'NEUTRAL'}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-xs font-mono">
+              <div className="flex justify-between">
+                <span className="text-slate-400">EMA 20:</span>
+                <span className="text-white font-semibold">{indicators?.trend?.ema20 || '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">EMA 50:</span>
+                <span className="text-teal-400 font-semibold">{indicators?.trend?.ema50 || '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">EMA 200:</span>
+                <span className="text-cyan-400 font-semibold">{indicators?.trend?.ema200 || '—'}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-slate-800/80">
+                <span className="text-slate-400">SMA 50:</span>
+                <span className="text-slate-300 font-semibold">{indicators?.trend?.sma50 || '—'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Momentum (RSI 14) */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <span className="flex items-center space-x-1.5">
+                <Gauge className="w-4 h-4 text-emerald-400" />
+                <span>RSI (14 Wilder)</span>
+              </span>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                indicators?.momentum?.rsi >= 70
+                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  : indicators?.momentum?.rsi <= 30
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : 'bg-slate-800 text-slate-300 border-slate-700'
+              }`}>
+                {indicators?.momentum?.rsiStatus || 'NEUTRAL'}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-baseline">
+                <span className="text-2xl font-mono font-extrabold text-white">
+                  {indicators?.momentum?.rsi || '50.0'}
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {indicators?.momentum?.rsi > 50 ? 'Bullish Half' : 'Bearish Half'}
+                </span>
+              </div>
+
+              {/* RSI Level Bar */}
+              <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden relative">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 via-blue-500 to-rose-500 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(Math.max(indicators?.momentum?.rsi || 50, 0), 100)}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                <span>0 (Oversold)</span>
+                <span>50</span>
+                <span>100 (Overbought)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Momentum (MACD 12, 26, 9) */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <span className="flex items-center space-x-1.5">
+                <BarChart3 className="w-4 h-4 text-cyan-400" />
+                <span>MACD (12, 26, 9)</span>
+              </span>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                indicators?.momentum?.macdTrend?.includes('BULLISH')
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+              }`}>
+                {indicators?.momentum?.macdTrend || 'NEUTRAL'}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-xs font-mono">
+              <div className="flex justify-between">
+                <span className="text-slate-400">MACD Line:</span>
+                <span className="text-white font-semibold">{indicators?.momentum?.macd || '0.0000'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Signal Line:</span>
+                <span className="text-slate-300 font-semibold">{indicators?.momentum?.macdSignal || '0.0000'}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-slate-800/80">
+                <span className="text-slate-400">Histogram:</span>
+                <span className={`font-bold ${
+                  (indicators?.momentum?.macdHistogram || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}>
+                  {indicators?.momentum?.macdHistogram || '0.0000'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Volatility (ATR 14) */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <span className="flex items-center space-x-1.5">
+                <Activity className="w-4 h-4 text-amber-400" />
+                <span>ATR Volatility (14)</span>
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                True Range
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-xs font-mono">
+              <div className="flex justify-between items-baseline">
+                <span className="text-slate-400">Average TR:</span>
+                <span className="text-lg font-bold text-white">{indicators?.volatility?.atr || '0.0000'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">ATR % of Price:</span>
+                <span className="text-amber-400 font-semibold">{indicators?.volatility?.atrPercent || '0.00'}%</span>
+              </div>
+              <p className="text-[10px] text-slate-500 leading-tight pt-1">
+                Used to dynamically compute Stop Loss buffers and structural targets.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Structural Analysis & Dynamic Support/Resistance Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+          {/* Market Structure Engine */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Target className="w-4 h-4 text-blue-400" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                  Market Structure & Fractals
+                </h4>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                {structure?.state || 'UPTREND'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs font-mono pt-1">
+              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 block text-[10px] uppercase">High Structure</span>
+                <span className="text-emerald-400 font-bold">{structure?.highStructure || 'HIGHER_HIGH'}</span>
+              </div>
+              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 block text-[10px] uppercase">Low Structure</span>
+                <span className="text-teal-400 font-bold">{structure?.lowStructure || 'HIGHER_LOW'}</span>
+              </div>
+              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 block text-[10px] uppercase">Recent Swing High</span>
+                <span className="text-white font-bold">{structure?.recentSwingHigh || '—'}</span>
+              </div>
+              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 block text-[10px] uppercase">Recent Swing Low</span>
+                <span className="text-white font-bold">{structure?.recentSwingLow || '—'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4 text-xs font-mono text-slate-400 pt-1">
+              <span>Breakout: <b className={structure?.isBreakout ? 'text-emerald-400' : 'text-slate-500'}>{structure?.isBreakout ? 'YES' : 'NO'}</b></span>
+              <span>Breakdown: <b className={structure?.isBreakdown ? 'text-rose-400' : 'text-slate-500'}>{structure?.isBreakdown ? 'YES' : 'NO'}</b></span>
+              <span>Consolidation: <b className={structure?.isConsolidating ? 'text-amber-400' : 'text-slate-500'}>{structure?.isConsolidating ? 'YES' : 'NO'}</b></span>
+            </div>
+          </div>
+
+          {/* Dynamic Support & Resistance Levels */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Layers className="w-4 h-4 text-teal-400" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                  Dynamic Support & Resistance Clusters
+                </h4>
+              </div>
+              <span className="text-xs font-mono text-slate-400">ATR Cluster Method</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs font-mono pt-1">
+              <div className="bg-slate-950/60 p-3 rounded-xl border border-rose-500/20">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-rose-400 font-bold">Resistance (R1)</span>
+                  <span className="text-[10px] text-slate-400">+{sr?.resistanceDistance || '0'} pips</span>
+                </div>
+                <div className="text-base font-bold text-white">{sr?.nearestResistance || '—'}</div>
+                <div className="text-[10px] text-slate-500 mt-1">R2: {sr?.resistances?.[1] || '—'}</div>
+              </div>
+
+              <div className="bg-slate-950/60 p-3 rounded-xl border border-emerald-500/20">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-emerald-400 font-bold">Support (S1)</span>
+                  <span className="text-[10px] text-slate-400">-{sr?.supportDistance || '0'} pips</span>
+                </div>
+                <div className="text-base font-bold text-white">{sr?.nearestSupport || '—'}</div>
+                <div className="text-[10px] text-slate-500 mt-1">S2: {sr?.supports?.[1] || '—'}</div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Levels are mathematically calculated using swing high/low density clustering. No arbitrary percentage levels.
+            </p>
+          </div>
+        </div>
+
+        {/* Multi-Timeframe Confirmation Matrix */}
+        {mtfData && (
+          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-300 uppercase tracking-wider">
+                Multi-Timeframe Confirmation Matrix (Section 8)
+              </span>
+              <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                Consensus: {mtfData.consensus.replace(/_/g, ' ')}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-xs">
+              {mtfData.timeframes.map((t) => (
+                <div key={t.timeframe} className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 flex justify-between items-center">
+                  <span className="font-bold uppercase text-slate-300">{t.timeframe}:</span>
+                  <span className={`font-bold ${
+                    t.bias === 'BULLISH'
+                      ? 'text-emerald-400'
+                      : t.bias === 'BEARISH'
+                      ? 'text-rose-400'
+                      : 'text-amber-400'
+                  }`}>
+                    {t.bias}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Selected Pair Candlestick Feed (Phase 2 Ingestion Table) */}
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex items-center justify-between">
@@ -495,7 +782,7 @@ export const Dashboard = ({
             </div>
           </div>
           <span className="text-xs font-mono px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-            {loadingCandles ? 'Ingesting...' : `${candlesData.length} Recent Bars`}
+            {candlesData.length} Recent Bars
           </span>
         </div>
 
@@ -535,60 +822,6 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* Selected Pair Detailed Breakdown & Reasons */}
-      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Cpu className="w-5 h-5 text-blue-400" />
-            <h3 className="text-base font-bold text-white">
-              Signal Engine Breakdown: {selectedPair.pair} ({selectedTimeframe})
-            </h3>
-          </div>
-          <span className="text-xs font-mono text-slate-400">
-            Scoring Criteria: 100-Point Rule Engine
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Deterministic Rule Triggers
-            </h4>
-            <div className="space-y-2">
-              {selectedPair.reasons.map((r, i) => (
-                <div
-                  key={i}
-                  className="flex items-center space-x-2 text-xs text-slate-300 bg-slate-900/70 p-2.5 rounded-lg border border-slate-800"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{r}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Risk / Reward & Execution Framework
-            </h4>
-            <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Estimated Risk/Reward:</span>
-                <span className="text-white font-bold">{selectedPair.rr}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Confidence Category:</span>
-                <span className="text-blue-400 font-bold">{selectedPair.confidence}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Execution Rule:</span>
-                <span className="text-amber-400">Analytical Signal Only (No Direct Broker Order)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Master 11-Phase Architecture Roadmap */}
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex items-center space-x-3">
@@ -598,7 +831,7 @@ export const Dashboard = ({
               ForexAI Analyzer Architecture Roadmap
             </h3>
             <p className="text-xs text-slate-400">
-              Phases 1 & 2 are complete. Development follows strict sequential progression.
+              Phases 1, 2, and 3 are complete. Ready for Phase 4 (Deterministic Signal Engine).
             </p>
           </div>
         </div>

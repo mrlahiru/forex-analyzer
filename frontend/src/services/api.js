@@ -76,4 +76,56 @@ export const fetchProviderStatus = async () => {
   }
 };
 
+// Phase 3: Technical Analysis Endpoints
+export const fetchAnalysis = async (pair, timeframe = '1h') => {
+  try {
+    const cleanPair = pair.replace('/', '');
+    const response = await api.get(`/analysis/${cleanPair}`, {
+      params: { timeframe },
+    });
+    return {
+      success: true,
+      data: response.data?.analysis,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const fetchMultiTimeframeAnalysis = async (pair) => {
+  try {
+    const cleanPair = pair.replace('/', '');
+    const response = await api.get(`/analysis/${cleanPair}/multi-timeframe`);
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const fetchAllAnalyses = async (timeframe = '1h') => {
+  try {
+    const response = await api.get('/analysis', {
+      params: { timeframe },
+    });
+    return {
+      success: true,
+      data: response.data?.analyses,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;

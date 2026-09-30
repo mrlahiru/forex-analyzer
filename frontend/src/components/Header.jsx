@@ -24,7 +24,7 @@ export const Header = ({ healthInfo, isApiOnline, latency, providerStatus }) => 
               </span>
             </div>
             <span className="text-[10px] text-slate-400 font-mono tracking-wider block">
-              PHASE 2 MARKET DATA READY
+              PHASE 3 TECHNICAL ENGINE ACTIVE
             </span>
           </div>
         </div>
