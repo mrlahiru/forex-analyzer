@@ -6,6 +6,7 @@ import signalRoutes from './signalRoutes.js';
 import riskRoutes from './riskRoutes.js';
 import aiRoutes from './aiRoutes.js';
 import scannerRoutes from './scannerRoutes.js';
+import notificationRoutes from './notificationRoutes.js';
 
 const router = Router();
 
@@ -29,6 +30,9 @@ router.use('/ai', aiRoutes);
 
 // Automatic Market Scanner & Background Engine (Phase 8)
 router.use('/scanner', scannerRoutes);
+
+// Telegram Notifications & Alerts Engine (Phase 9)
+router.use('/notifications', notificationRoutes);
 
 // Base API route placeholder info
 router.get('/', (req, res) => {

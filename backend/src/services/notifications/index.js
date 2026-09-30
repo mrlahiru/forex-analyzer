@@ -1,2 +1,4 @@
-// Telegram & Multi-channel Notification Service (Phase 9)
-export default {};
+import { telegramService } from './telegramService.js';
+
+export { telegramService };
+export default telegramService;

@@ -38,10 +38,14 @@ import {
   fetchScannerStatus,
   triggerManualScan,
   fetchScannerEvents,
+  fetchNotificationStatus,
+  sendTestNotification,
+  updateNotificationSettings,
 } from '../services/api';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { AiAnalysisCard } from '../components/AiAnalysisCard';
 import { ScannerConsole } from '../components/ScannerConsole';
+import { TelegramAlertConsole } from '../components/TelegramAlertConsole';
 
 
 const defaultFallbackPairs = [
@@ -191,7 +195,7 @@ const roadmapPhases = [
   { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'completed', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
   { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'completed', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'completed', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
-  { phase: 'Phase 9', title: 'Telegram Notifications', status: 'upcoming', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
+  { phase: 'Phase 9', title: 'Telegram Notifications', status: 'completed', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
   { phase: 'Phase 10', title: 'Backtesting Engine', status: 'upcoming', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
   { phase: 'Phase 11', title: 'Production Deployment', status: 'upcoming', desc: 'Docker Compose, GitHub Actions, environment security' },
 ];
@@ -227,6 +231,10 @@ export const Dashboard = ({
   const [scannerData, setScannerData] = useState(null);
   const [scannerEvents, setScannerEvents] = useState([]);
   const [scanningManual, setScanningManual] = useState(false);
+
+  // Phase 9 Telegram Notifications State
+  const [telegramStatus, setTelegramStatus] = useState(null);
+  const [sendingTestAlert, setSendingTestAlert] = useState(false);
 
   // Load live quotes and evaluate signals
   const loadMarketAndSignals = async () => {
@@ -350,16 +358,41 @@ export const Dashboard = ({
     setScanningManual(false);
   };
 
+  // Load Telegram status
+  const loadTelegramStatus = async () => {
+    const res = await fetchNotificationStatus();
+    if (res.success && res.data) {
+      setTelegramStatus(res.data);
+    }
+  };
+
+  const handleSendTelegramTest = async () => {
+    setSendingTestAlert(true);
+    await sendTestNotification();
+    await loadTelegramStatus();
+    setSendingTestAlert(false);
+  };
+
+  const handleUpdateTelegramPreferences = async (newPrefs) => {
+    const res = await updateNotificationSettings(newPrefs);
+    if (res.success && res.data) {
+      setTelegramStatus((prev) => (prev ? { ...prev, preferences: res.data } : prev));
+    }
+  };
+
   useEffect(() => {
     loadMarketAndSignals();
     loadPairDetails(selectedPair.pair, selectedTimeframe);
     loadScanner();
+    loadTelegramStatus();
 
     const interval = setInterval(loadMarketAndSignals, 15000);
     const scannerInterval = setInterval(loadScanner, 10000);
+    const tgInterval = setInterval(loadTelegramStatus, 15000);
     return () => {
       clearInterval(interval);
       clearInterval(scannerInterval);
+      clearInterval(tgInterval);
     };
   }, []);
 
@@ -391,14 +424,14 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 8 Complete
+                Phase 9 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Automatic Market Scanner & Background Lifecycle Engine Active
+                Telegram Notifications & Institutional Real-Time Alerts Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Autonomous node-cron scheduler scans all 7 Forex pairs every minute, monitors live price action, and records real-time TP1, TP2, TP3, and Stop Loss events.
+              Automated Telegram Bot dispatches real-time setup alerts, target hit notifications (TP1/2/3), and disciplined Stop Loss executions directly to your mobile channel.
             </p>          </div>
 
           <div className="flex items-center space-x-3">
@@ -628,6 +661,14 @@ export const Dashboard = ({
           const matched = pairsData.find((p) => p.pair === pairName);
           if (matched) setSelectedPair(matched);
         }}
+      />
+
+      {/* PHASE 9: TELEGRAM NOTIFICATIONS & INSTITUTIONAL ALERTS */}
+      <TelegramAlertConsole
+        status={telegramStatus}
+        loading={sendingTestAlert}
+        onSendTest={handleSendTelegramTest}
+        onUpdatePreferences={handleUpdateTelegramPreferences}
       />
 
       {/* PHASE 6: INTERACTIVE TRADINGVIEW LIGHTWEIGHT CHARTS */}

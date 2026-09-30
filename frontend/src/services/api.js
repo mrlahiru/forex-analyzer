@@ -263,5 +263,51 @@ export const fetchScannerEvents = async (limit = 25) => {
   }
 };
 
+// Phase 9: Telegram Notifications & Alerts Endpoints
+export const fetchNotificationStatus = async () => {
+  try {
+    const response = await api.get('/notifications/status');
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const sendTestNotification = async () => {
+  try {
+    const response = await api.post('/notifications/test');
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const updateNotificationSettings = async (settings) => {
+  try {
+    const response = await api.post('/notifications/settings', settings);
+    return {
+      success: true,
+      data: response.data?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;
 
