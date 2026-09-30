@@ -111,14 +111,48 @@ export const fetchMultiTimeframeAnalysis = async (pair) => {
   }
 };
 
-export const fetchAllAnalyses = async (timeframe = '1h') => {
+// Phase 4: Deterministic Signal Engine Endpoints
+export const fetchActiveSignals = async () => {
   try {
-    const response = await api.get('/analysis', {
+    const response = await api.get('/signals/active');
+    return {
+      success: true,
+      data: response.data?.signals,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const evaluatePairSignal = async (pair, timeframe = '1h') => {
+  try {
+    const cleanPair = pair.replace('/', '');
+    const response = await api.get(`/signals/evaluate/${cleanPair}`, {
       params: { timeframe },
     });
     return {
       success: true,
-      data: response.data?.analyses,
+      data: response.data?.signal,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const evaluateAllSignals = async (timeframe = '1h') => {
+  try {
+    const response = await api.get('/signals/evaluate', {
+      params: { timeframe },
+    });
+    return {
+      success: true,
+      data: response.data?.signals,
     };
   } catch (error) {
     return {

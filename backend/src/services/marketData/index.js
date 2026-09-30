@@ -184,8 +184,17 @@ export class MarketDataManager {
       successfulProvider = 'mock';
     }
 
+    const result = {
+      pair: normPair,
+      timeframe,
+      provider: successfulProvider,
+      isLive: successfulProvider !== 'mock',
+      count: candles.length,
+      candles,
+    };
+
     // Cache in memory
-    this.candleCache.set(cacheKey, { data: candles, cachedAt: Date.now() });
+    this.candleCache.set(cacheKey, { data: result, cachedAt: Date.now() });
 
     // Asynchronously save latest candles to MongoDB if connected
     if (mongoose.connection.readyState === 1) {
@@ -194,14 +203,7 @@ export class MarketDataManager {
       );
     }
 
-    return {
-      pair: normPair,
-      timeframe,
-      provider: successfulProvider,
-      isLive: successfulProvider !== 'mock',
-      count: candles.length,
-      candles,
-    };
+    return result;
   }
 
   /**

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import healthRoutes from './healthRoutes.js';
 import marketRoutes from './marketRoutes.js';
 import analysisRoutes from './analysisRoutes.js';
+import signalRoutes from './signalRoutes.js';
 
 const router = Router();
 
@@ -14,6 +15,9 @@ router.use('/markets', marketRoutes);
 // Technical Analysis Engine (Phase 3)
 router.use('/analysis', analysisRoutes);
 
+// Deterministic Signal Engine (Phase 4)
+router.use('/signals', signalRoutes);
+
 // Base API route placeholder info
 router.get('/', (req, res) => {
   res.json({
@@ -25,7 +29,7 @@ router.get('/', (req, res) => {
       health: '/api/health',
       markets: '/api/markets',
       analysis: '/api/analysis',
-      signals: '/api/signals (Phase 4)',
+      signals: '/api/signals',
       auth: '/api/auth (Phase 1/Auth)',
       watchlist: '/api/watchlist (Phase 6)',
       backtest: '/api/backtest (Phase 10)',
