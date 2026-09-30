@@ -234,6 +234,7 @@ export const Dashboard = ({
   const [activeSignalDetails, setActiveSignalDetails] = useState(defaultFallbackPairs[0]);
   const [loadingSignal, setLoadingSignal] = useState(false);
   const [feedSource, setFeedSource] = useState('Simulation Fallback');
+  const [priceDeltas, setPriceDeltas] = useState({});
 
   // Phase 5 Risk Calculator State
   const [accountBalance, setAccountBalance] = useState(1000);
@@ -270,32 +271,52 @@ export const Dashboard = ({
       setFeedSource(marketsRes.data.isLive ? `Live (${marketsRes.data.activeProvider})` : 'Simulation Fallback');
     }
 
-    if (signalsRes.success && signalsRes.data?.signals?.length > 0) {
+    if (marketsRes.success && marketsRes.data?.markets?.length > 0) {
       setPairsData((prev) =>
         prev.map((item) => {
-          const sigMatch = signalsRes.data.signals.find((s) => s.pair === item.pair);
-          const marketMatch = marketsRes.data?.markets?.find((m) => m.pair === item.pair);
+          const marketMatch = marketsRes.data.markets.find((m) => m.pair === item.pair);
+          const sigMatch = signalsRes.data?.signals?.find((s) => s.pair === item.pair);
 
-          if (!sigMatch) return item;
+          const newPrice = marketMatch ? marketMatch.price : (sigMatch?.entry || item.price);
+          if (item.price && newPrice && newPrice !== item.price) {
+            setPriceDeltas((deltas) => ({
+              ...deltas,
+              [item.pair]: newPrice > item.price ? 'up' : 'down',
+            }));
+          }
+
+          const chgPct = marketMatch?.changePercent !== undefined ? marketMatch.changePercent : item.changePercent;
+          const dynamicTrend = (chgPct || 0) >= 0
+            ? `Bullish Momentum (+${(chgPct || 0).toFixed(2)}%)`
+            : `Bearish Pressure (${(chgPct || 0).toFixed(2)}%)`;
+
           return {
             ...item,
-            price: marketMatch?.price || sigMatch.entry || item.price,
-            changePercent: marketMatch?.changePercent || item.changePercent,
-            change: marketMatch?.change || item.change,
-            signal: sigMatch.direction,
-            score: sigMatch.score,
-            confidence: sigMatch.confidence,
-            entry: sigMatch.entry,
-            tp1: sigMatch.tp1,
-            tp2: sigMatch.tp2,
-            tp3: sigMatch.tp3,
-            sl: sigMatch.stopLoss,
-            breakdown: sigMatch.breakdown || item.breakdown,
-            reasons: sigMatch.reasons || item.reasons,
-            timeframeConsensus: sigMatch.timeframeConsensus,
+            price: newPrice,
+            changePercent: chgPct,
+            change: marketMatch?.change !== undefined ? marketMatch.change : item.change,
+            trend: dynamicTrend,
+            isLive: marketMatch?.isLive ?? marketsRes.data?.isLive,
+            provider: marketMatch?.provider || marketsRes.data?.activeProvider,
+            signal: sigMatch?.direction || item.signal,
+            score: sigMatch?.score || item.score,
+            confidence: sigMatch?.confidence || item.confidence,
+            entry: sigMatch?.entry || item.entry,
+            tp1: sigMatch?.tp1 !== undefined ? sigMatch.tp1 : item.tp1,
+            tp2: sigMatch?.tp2 !== undefined ? sigMatch.tp2 : item.tp2,
+            tp3: sigMatch?.tp3 !== undefined ? sigMatch.tp3 : item.tp3,
+            sl: sigMatch?.stopLoss !== undefined ? sigMatch.stopLoss : item.sl,
+            breakdown: sigMatch?.breakdown || item.breakdown,
+            reasons: sigMatch?.reasons || item.reasons,
+            timeframeConsensus: sigMatch?.timeframeConsensus || item.timeframeConsensus,
           };
         })
       );
+
+      // Auto-clear price flash deltas after 1.5 seconds
+      setTimeout(() => {
+        setPriceDeltas({});
+      }, 1500);
     }
     setLoadingSignal(false);
   };
@@ -714,12 +735,30 @@ export const Dashboard = ({
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
                         {selectedTimeframe}
                       </span>
+                      {item.isLive ? (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                          <span>Live TwelveData</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
+                          Sim Ticker
+                        </span>
+                      )}
                     </div>
-                    <span className="text-xs text-slate-400">{item.trend}</span>
+                    <span className="text-xs text-slate-400 block mt-0.5">{item.trend}</span>
                   </div>
 
                   <div className="text-right">
-                    <div className="font-mono text-base font-bold text-white tracking-tight">
+                    <div
+                      className={`font-mono text-base font-bold tracking-tight transition-all duration-300 px-2 py-0.5 rounded-lg inline-block ${
+                        priceDeltas[item.pair] === 'up'
+                          ? 'text-emerald-300 bg-emerald-500/25 scale-105 shadow-md shadow-emerald-500/20'
+                          : priceDeltas[item.pair] === 'down'
+                          ? 'text-rose-300 bg-rose-500/25 scale-105 shadow-md shadow-rose-500/20'
+                          : 'text-white'
+                      }`}
+                    >
                       {typeof item.price === 'number'
                         ? item.price.toFixed(item.pair.includes('JPY') ? 2 : 5)
                         : item.price}

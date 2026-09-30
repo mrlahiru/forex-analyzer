@@ -39,7 +39,9 @@ export class MarketDataManager {
     };
 
     // Determine primary provider based on availability
-    if (this.providers.twelve_data.isAvailable()) {
+    const twelveKey = process.env.TWELVE_DATA_API_KEY || config.marketData.twelveDataKey;
+    if (twelveKey && twelveKey.trim().length > 0) {
+      this.providers.twelve_data = new TwelveDataProvider(twelveKey.trim());
       this.activeProviderName = 'twelve_data';
     } else if (this.providers.alpha_vantage.isAvailable()) {
       this.activeProviderName = 'alpha_vantage';
@@ -54,7 +56,17 @@ export class MarketDataManager {
     console.log(`[MarketData] Active Provider: ${this.activeProviderName} (Live: ${this.activeProviderName !== 'mock'})`);
   }
 
+  checkAndPromoteProvider() {
+    const twelveKey = process.env.TWELVE_DATA_API_KEY || config.marketData.twelveDataKey;
+    if (twelveKey && twelveKey.trim().length > 0 && this.activeProviderName === 'mock') {
+      this.providers.twelve_data = new TwelveDataProvider(twelveKey.trim());
+      this.activeProviderName = 'twelve_data';
+      console.log(`[MarketData] Promoted active provider to twelve_data (Live: true)`);
+    }
+  }
+
   getActiveProvider() {
+    this.checkAndPromoteProvider();
     return this.providers[this.activeProviderName] || this.providers.mock;
   }
 
@@ -66,6 +78,7 @@ export class MarketDataManager {
   }
 
   getProviderStatus() {
+    this.checkAndPromoteProvider();
     return {
       activeProvider: this.activeProviderName,
       isLive: this.activeProviderName !== 'mock',
@@ -102,6 +115,7 @@ export class MarketDataManager {
    * Get latest quote for single pair with fallback cascade
    */
   async getQuote(pair) {
+    this.checkAndPromoteProvider();
     const normPair = this.normalizePair(pair);
     const cached = this.quoteCache.get(normPair);
     const quoteTtl = this.activeProviderName === 'mock' ? 1200 : 10000;
@@ -135,9 +149,26 @@ export class MarketDataManager {
   }
 
   /**
-   * Get all quotes for supported pairs
+   * Get all quotes for supported pairs using batch provider if available
    */
   async getAllQuotes() {
+    this.checkAndPromoteProvider();
+    const provider = this.getActiveProvider();
+
+    if (typeof provider.getQuotes === 'function') {
+      try {
+        const batchQuotes = await provider.getQuotes(this.supportedPairs);
+        if (batchQuotes && batchQuotes.length > 0) {
+          for (const q of batchQuotes) {
+            this.quoteCache.set(q.pair, { data: q, cachedAt: Date.now() });
+          }
+          return batchQuotes;
+        }
+      } catch (err) {
+        console.warn(`[MarketData] Batch quotes failed on ${this.activeProviderName}: ${err.message}. Falling back to single quotes...`);
+      }
+    }
+
     const quotes = await Promise.all(
       this.supportedPairs.map((pair) => this.getQuote(pair))
     );

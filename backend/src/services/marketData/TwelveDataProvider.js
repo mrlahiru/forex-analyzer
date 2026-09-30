@@ -135,6 +135,63 @@ export class TwelveDataProvider extends MarketDataProvider {
       throw new Error(`[TwelveData] Failed to fetch quote for ${pair}: ${msg}`);
     }
   }
+
+  async getQuotes(pairs) {
+    if (!this.isAvailable()) {
+      throw new Error('Twelve Data API key is not configured');
+    }
+
+    if (!this.checkRateLimit()) {
+      throw new Error('Twelve Data rate limit reached (max 8 requests/min)');
+    }
+
+    const symbols = pairs.map((p) => this.formatPairForProvider(p)).join(',');
+
+    try {
+      const response = await this.client.get('/quote', {
+        params: {
+          symbol: symbols,
+          apikey: this.apiKey,
+        },
+      });
+
+      const data = response.data;
+      if (data.status === 'error') {
+        throw new Error(data.message || 'Error fetching batch quotes');
+      }
+
+      const results = [];
+      for (const pair of pairs) {
+        const norm = this.normalizePair(pair);
+        const quoteData = data[norm] || data[pair];
+        if (quoteData && !quoteData.status) {
+          const price = parseFloat(quoteData.close || quoteData.price || 0);
+          const prevClose = parseFloat(quoteData.previous_close || price);
+          const change = parseFloat(quoteData.change || (price - prevClose).toFixed(5));
+          const changePercent = parseFloat(
+            quoteData.percent_change || (((price - prevClose) / prevClose) * 100).toFixed(2)
+          );
+
+          results.push({
+            pair: norm,
+            price,
+            open: parseFloat(quoteData.open || price),
+            high: parseFloat(quoteData.high || price),
+            low: parseFloat(quoteData.low || price),
+            change,
+            changePercent,
+            timestamp: new Date().toISOString(),
+            provider: 'twelve_data',
+            isLive: true,
+          });
+        }
+      }
+      return results;
+    } catch (error) {
+      const msg = error.response?.data?.message || error.message;
+      throw new Error(`[TwelveData] Failed to fetch batch quotes: ${msg}`);
+    }
+  }
 }
 
 export default TwelveDataProvider;
