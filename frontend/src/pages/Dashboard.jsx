@@ -35,6 +35,8 @@ import {
   evaluateAllSignals,
   calculateRisk,
 } from '../services/api';
+import { TradingViewChart } from '../components/TradingViewChart';
+
 
 const defaultFallbackPairs = [
   {
@@ -180,7 +182,7 @@ const roadmapPhases = [
   { phase: 'Phase 3', title: 'Technical Analysis Engine', status: 'completed', desc: 'EMA 20/50/200, RSI (Wilder), MACD (12,26,9), ATR, Market Structure & S/R' },
   { phase: 'Phase 4', title: 'Deterministic Signal Engine', status: 'completed', desc: '100pt rule engine (EMA 25, MACD 20, RSI 15, Struct 15, S/R 15, Vol 10), BUY/SELL/NO TRADE, MTF confirmation' },
   { phase: 'Phase 5', title: 'Dynamic TP/SL & Risk Calculator', status: 'completed', desc: 'Structural Entry, TP1, TP2, TP3, SL anchored to ATR/swings, lot sizing, and risk-to-reward calculation' },
-  { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'upcoming', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
+  { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'completed', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
   { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'upcoming', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'upcoming', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
   { phase: 'Phase 9', title: 'Telegram Notifications', status: 'upcoming', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
@@ -257,7 +259,7 @@ export const Dashboard = ({
   // Load candles & indicators for the selected pair
   const loadPairDetails = async (pair, timeframe) => {
     const [candleRes, anaRes, mtfRes] = await Promise.all([
-      fetchCandles(pair, timeframe, 15),
+      fetchCandles(pair, timeframe, 100),
       fetchAnalysis(pair, timeframe),
       fetchMultiTimeframeAnalysis(pair),
     ]);
@@ -335,14 +337,14 @@ export const Dashboard = ({
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 5 Complete
+                Phase 6 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Dynamic TP/SL Engine & Risk Management Calculator Active
+                Interactive TradingView Charts & Technical Overlay Engine Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Levels calculated using dynamic swing extremes and ATR volatility. Built-in position sizing calculator evaluates pip values, lot sizes, and multi-target profit projections.
+              Real-time TradingView Lightweight candlestick chart with dynamic EMA 20/50/200 overlays, volume histogram, and institutional Entry / TP1 / TP2 / TP3 / Stop Loss price rays.
             </p>
           </div>
 
@@ -561,6 +563,51 @@ export const Dashboard = ({
             );
           })}
         </div>
+      </div>
+
+      {/* PHASE 6: INTERACTIVE TRADINGVIEW LIGHTWEIGHT CHARTS */}
+      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-3">
+            <CandlestickChart className="w-5 h-5 text-blue-400" />
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+                <span>Phase 6 Interactive TradingView Lightweight Chart:</span>
+                <span className="text-blue-400 font-mono">{selectedPair.pair} ({selectedTimeframe})</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Live candlestick bars, volume histogram, dynamic EMA 20/50/200 overlays, and multi-target TP/SL horizontal price rays
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 text-xs font-mono">
+            <span className="text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+              Bars: <b className="text-white">{candlesData.length} Loaded</b>
+            </span>
+            <span className="text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+              Feed: <b className="text-blue-400">{feedSource}</b>
+            </span>
+          </div>
+        </div>
+
+        {/* TradingView Chart Container */}
+        <TradingViewChart
+          candles={candlesData}
+          pair={selectedPair.pair}
+          timeframe={selectedTimeframe}
+          levels={{
+            entry: activeSignalDetails?.entry || activeSignalDetails?.price,
+            tp1: activeSignalDetails?.tp1,
+            tp2: activeSignalDetails?.tp2,
+            tp3: activeSignalDetails?.tp3,
+            stopLoss: activeSignalDetails?.sl,
+            nearestSupport: sr?.nearestSupport,
+            nearestResistance: sr?.nearestResistance,
+          }}
+          indicators={indicators}
+          height={480}
+        />
       </div>
 
       {/* PHASE 5: RISK MANAGEMENT & POSITION SIZING CALCULATOR */}
