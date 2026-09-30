@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
   CheckCircle2,
-  AlertCircle,
   Clock,
   Layers,
   ArrowRight,
@@ -12,25 +11,28 @@ import {
   Cpu,
   Database,
   ExternalLink,
+  CandlestickChart,
+  Radio,
 } from 'lucide-react';
+import { fetchMarkets, fetchCandles } from '../services/api';
 
-const initialPairs = [
+const defaultFallbackPairs = [
   {
     pair: 'EUR/USD',
-    price: '1.08420',
-    change: '+0.34%',
-    isPositive: true,
+    price: 1.08420,
+    change: 0.0034,
+    changePercent: 0.34,
     trend: 'Bullish (Above EMA 50/200)',
     signal: 'BUY',
     score: 84,
     confidence: 'Strong Setup',
-    entry: '1.08420',
-    tp1: '1.08520',
-    tp2: '1.08650',
-    tp3: '1.08800',
-    sl: '1.08280',
+    entry: 1.08420,
+    tp1: 1.08520,
+    tp2: 1.08650,
+    tp3: 1.08800,
+    sl: 1.08280,
     rr: '1:2.4',
-    timeframe: '1H',
+    timeframe: '1h',
     reasons: [
       'EMA 50 crossed above EMA 200 (Golden Cross)',
       'RSI is 61 (Healthy Bullish Momentum)',
@@ -39,20 +41,20 @@ const initialPairs = [
   },
   {
     pair: 'GBP/USD',
-    price: '1.29810',
-    change: '-0.21%',
-    isPositive: false,
+    price: 1.29810,
+    change: -0.0021,
+    changePercent: -0.21,
     trend: 'Bearish Breakdown',
     signal: 'SELL',
     score: 78,
     confidence: 'Strong Setup',
-    entry: '1.29810',
-    tp1: '1.29650',
-    tp2: '1.29420',
-    tp3: '1.29100',
-    sl: '1.30050',
+    entry: 1.29810,
+    tp1: 1.29650,
+    tp2: 1.29420,
+    tp3: 1.29100,
+    sl: 1.30050,
     rr: '1:2.9',
-    timeframe: '4H',
+    timeframe: '4h',
     reasons: [
       'Price rejected key 4H resistance zone',
       'MACD histogram turned bearish',
@@ -61,42 +63,42 @@ const initialPairs = [
   },
   {
     pair: 'USD/JPY',
-    price: '154.65',
-    change: '+0.08%',
-    isPositive: true,
+    price: 154.65,
+    change: 0.12,
+    changePercent: 0.08,
     trend: 'Consolidation Range',
     signal: 'NO TRADE',
     score: 52,
     confidence: 'Low Confidence',
-    entry: '—',
-    tp1: '—',
-    tp2: '—',
-    tp3: '—',
-    sl: '—',
+    entry: null,
+    tp1: null,
+    tp2: null,
+    tp3: null,
+    sl: null,
     rr: '—',
-    timeframe: '1H',
+    timeframe: '1h',
     reasons: [
-      'Choppy price action within tight 30-pip range',
+      'Choppy price action within tight range',
       'RSI is neutral at 49.5',
       'Score below 60 threshold (No deterministic edge)',
     ],
   },
   {
     pair: 'USD/CHF',
-    price: '0.88450',
-    change: '-0.12%',
-    isPositive: false,
+    price: 0.88450,
+    change: -0.0011,
+    changePercent: -0.12,
     trend: 'Neutral / Range Bound',
     signal: 'NO TRADE',
     score: 48,
     confidence: 'Neutral',
-    entry: '—',
-    tp1: '—',
-    tp2: '—',
-    tp3: '—',
-    sl: '—',
+    entry: null,
+    tp1: null,
+    tp2: null,
+    tp3: null,
+    sl: null,
     rr: '—',
-    timeframe: '15M',
+    timeframe: '15m',
     reasons: [
       'Multi-timeframe disagreement (1D Bullish vs 15M Bearish)',
       'Awaiting breakout confirmation',
@@ -104,20 +106,20 @@ const initialPairs = [
   },
   {
     pair: 'AUD/USD',
-    price: '0.65340',
-    change: '+0.45%',
-    isPositive: true,
+    price: 0.65340,
+    change: 0.0029,
+    changePercent: 0.45,
     trend: 'Bullish Pullback',
     signal: 'BUY',
     score: 76,
     confidence: 'Moderate Setup',
-    entry: '0.65340',
-    tp1: '0.65480',
-    tp2: '0.65650',
-    tp3: '0.65900',
-    sl: '0.65150',
+    entry: 0.65340,
+    tp1: 0.65480,
+    tp2: 0.65650,
+    tp3: 0.65900,
+    sl: 0.65150,
     rr: '1:2.1',
-    timeframe: '1H',
+    timeframe: '1h',
     reasons: [
       'Support bounce at 0.6520 with pin bar',
       'MACD bullish divergence on 1H chart',
@@ -125,20 +127,20 @@ const initialPairs = [
   },
   {
     pair: 'USD/CAD',
-    price: '1.39120',
-    change: '-0.16%',
-    isPositive: false,
+    price: 1.39120,
+    change: -0.0022,
+    changePercent: -0.16,
     trend: 'Bearish Continuation',
     signal: 'SELL',
     score: 74,
     confidence: 'Moderate Setup',
-    entry: '1.39120',
-    tp1: '1.38950',
-    tp2: '1.38720',
-    tp3: '1.38400',
-    sl: '1.39380',
+    entry: 1.39120,
+    tp1: 1.38950,
+    tp2: 1.38720,
+    tp3: 1.38400,
+    sl: 1.39380,
     rr: '1:2.8',
-    timeframe: '1H',
+    timeframe: '1h',
     reasons: [
       'Rejected EMA 20 dynamic resistance',
       'Bearish structural lower high formation',
@@ -146,76 +148,139 @@ const initialPairs = [
   },
   {
     pair: 'NZD/USD',
-    price: '0.58910',
-    change: '+0.27%',
-    isPositive: true,
+    price: 0.58910,
+    change: 0.0016,
+    changePercent: 0.27,
     trend: 'Consolidation',
     signal: 'NO TRADE',
     score: 55,
     confidence: 'No Edge',
-    entry: '—',
-    tp1: '—',
-    tp2: '—',
-    tp3: '—',
-    sl: '—',
+    entry: null,
+    tp1: null,
+    tp2: null,
+    tp3: null,
+    sl: null,
     rr: '—',
-    timeframe: '1H',
+    timeframe: '1h',
     reasons: ['Consolidation below major supply zone', 'Low volume compression'],
   },
 ];
 
+const TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
+
 const roadmapPhases = [
   { phase: 'Phase 1', title: 'Project Initialization', status: 'completed', desc: 'React, Vite, Tailwind, Express (5001), CORS, MongoDB schema, Health check' },
-  { phase: 'Phase 2', title: 'Market Data Layer', status: 'upcoming', desc: 'Twelve Data API abstraction, OANDA/AlphaVantage fallbacks, candlestick ingestion' },
+  { phase: 'Phase 2', title: 'Market Data Layer', status: 'completed', desc: 'Twelve Data API abstraction, OANDA/AlphaVantage fallbacks, candlestick ingestion & OHLCV endpoints' },
   { phase: 'Phase 3', title: 'Technical Analysis Engine', status: 'upcoming', desc: 'EMA 20/50/200, RSI, MACD, ATR, Market Structure & S/R recognition' },
   { phase: 'Phase 4', title: 'Signal Scoring Engine', status: 'upcoming', desc: 'Deterministic 100pt rule engine, BUY/SELL/NO TRADE, Multi-timeframe confirmation' },
   { phase: 'Phase 5', title: 'Dynamic TP/SL Engine', status: 'upcoming', desc: 'Non-arbitrary ATR & structural Entry, TP1, TP2, TP3, SL, Risk Calculator' },
   { phase: 'Phase 6', title: 'Interactive Dashboard', status: 'upcoming', desc: 'TradingView Lightweight Charts with live EMA overlays, TP/SL horizontal rays' },
-  { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'upcoming', desc: 'Structured AI synthesis, scenario risks, no halluncinations/guarantees' },
+  { phase: 'Phase 7', title: 'OpenAI Intelligence', status: 'upcoming', desc: 'Structured AI synthesis, scenario risks, no hallucinations/guarantees' },
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'upcoming', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
   { phase: 'Phase 9', title: 'Telegram Notifications', status: 'upcoming', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
   { phase: 'Phase 10', title: 'Backtesting Engine', status: 'upcoming', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
   { phase: 'Phase 11', title: 'Production Deployment', status: 'upcoming', desc: 'Docker Compose, GitHub Actions, environment security' },
 ];
 
-export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, isRefreshing }) => {
-  const [selectedPair, setSelectedPair] = useState(initialPairs[0]);
+export const Dashboard = ({
+  healthInfo,
+  providerStatus,
+  isApiOnline,
+  latency,
+  onRefreshHealth,
+  isRefreshing,
+}) => {
+  const [pairsData, setPairsData] = useState(defaultFallbackPairs);
+  const [selectedPair, setSelectedPair] = useState(defaultFallbackPairs[0]);
+  const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
+  const [candlesData, setCandlesData] = useState([]);
+  const [loadingCandles, setLoadingCandles] = useState(false);
+  const [feedSource, setFeedSource] = useState('Simulation Fallback');
+
+  // Load real quotes from backend /api/markets
+  const loadMarketQuotes = async () => {
+    const res = await fetchMarkets();
+    if (res.success && res.data?.markets?.length > 0) {
+      setFeedSource(res.data.isLive ? `Live (${res.data.activeProvider})` : 'Simulation Fallback');
+      
+      // Merge live prices with default signal parameters
+      setPairsData((prev) =>
+        prev.map((item) => {
+          const liveMatch = res.data.markets.find((m) => m.pair === item.pair);
+          if (!liveMatch) return item;
+          return {
+            ...item,
+            price: liveMatch.price,
+            changePercent: liveMatch.changePercent,
+            change: liveMatch.change,
+            isLive: liveMatch.isLive,
+            provider: liveMatch.provider,
+          };
+        })
+      );
+    }
+  };
+
+  // Load real candlestick series from backend /api/markets/:pair/candles
+  const loadCandles = async (pair, timeframe) => {
+    setLoadingCandles(true);
+    const res = await fetchCandles(pair, timeframe, 15);
+    if (res.success && res.data?.candles) {
+      setCandlesData(res.data.candles);
+    }
+    setLoadingCandles(false);
+  };
+
+  useEffect(() => {
+    loadMarketQuotes();
+    loadCandles(selectedPair.pair, selectedTimeframe);
+    const interval = setInterval(loadMarketQuotes, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    loadCandles(selectedPair.pair, selectedTimeframe);
+  }, [selectedPair.pair, selectedTimeframe]);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner: Phase 1 Operational Status */}
+      {/* Top Banner: Operational Status */}
       <div className="rounded-2xl bg-gradient-to-r from-blue-900/30 via-slate-900 to-indigo-900/20 border border-blue-500/30 p-5 backdrop-blur-md shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 1 Active
+                Phase 2 Complete
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                ForexAI Platform Initialization Complete
+                Market Data Provider Abstraction Active
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Vite Frontend, Express API (Port 5001), Tailwind CSS, MongoDB models, CORS, and health monitoring are fully operational.
+              Twelve Data provider abstraction with multi-provider fallbacks (OANDA, Alpha Vantage, Polygon, Simulator), multi-timeframe candles, and REST endpoints are verified.
             </p>
           </div>
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={onRefreshHealth}
+              onClick={() => {
+                onRefreshHealth();
+                loadMarketQuotes();
+                loadCandles(selectedPair.pair, selectedTimeframe);
+              }}
               disabled={isRefreshing}
               className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition active:scale-95 disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-400' : ''}`} />
-              <span>{isRefreshing ? 'Checking...' : 'Refresh Health'}</span>
+              <span>{isRefreshing ? 'Syncing...' : 'Sync Market Data'}</span>
             </button>
             <a
-              href="http://localhost:5001/api/health"
+              href="http://localhost:5001/api/markets"
               target="_blank"
               rel="noreferrer"
               className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-xs font-semibold text-blue-400 border border-blue-500/30 transition"
             >
-              <span>API Health JSON</span>
+              <span>Markets JSON</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -224,13 +289,13 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
         {/* Live Diagnostics Mini-Bar */}
         <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">API Endpoint</span>
-            <span className="text-slate-300 font-semibold">http://localhost:5001</span>
+            <span className="text-slate-500 block text-[10px] uppercase">Active Provider</span>
+            <span className="text-blue-400 font-semibold uppercase">{providerStatus?.activeProvider || 'twelve_data'}</span>
           </div>
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">API Status</span>
-            <span className={isApiOnline ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}>
-              {isApiOnline ? `READY (${latency}ms)` : 'DISCONNECTED'}
+            <span className="text-slate-500 block text-[10px] uppercase">Data Feed Mode</span>
+            <span className={providerStatus?.isLive ? 'text-emerald-400 font-semibold' : 'text-cyan-400 font-semibold'}>
+              {feedSource}
             </span>
           </div>
           <div>
@@ -241,42 +306,49 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
           </div>
           <div>
             <span className="text-slate-500 block text-[10px] uppercase">Supported Pairs</span>
-            <span className="text-slate-300 font-semibold">{healthInfo?.supportedPairs?.length || 7} FX Pairs</span>
+            <span className="text-slate-300 font-semibold">{pairsData.length} FX Pairs</span>
           </div>
         </div>
       </div>
 
       {/* Market Overview Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold tracking-tight text-slate-100">
               Market Overview & Signal Matrix
             </h2>
             <p className="text-xs text-slate-400">
-              Live algorithmic preview across 7 core currency pairs with multi-target levels
+              Live quotes and multi-target setups across 7 core currency pairs
             </p>
           </div>
-          <div className="flex items-center space-x-2 text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-              BUY: Score &ge; 75
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-slate-800/60 text-slate-400 border border-slate-700 font-semibold">
-              NO TRADE: &lt; 60
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">
-              SELL: Bearish &ge; 75
-            </span>
+
+          {/* Timeframe Switcher */}
+          <div className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            {TIMEFRAMES.map((tf) => (
+              <button
+                key={tf}
+                onClick={() => setSelectedTimeframe(tf)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition ${
+                  selectedTimeframe === tf
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Currency Pair Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {initialPairs.map((item) => {
+          {pairsData.map((item) => {
             const isBuy = item.signal === 'BUY';
             const isSell = item.signal === 'SELL';
             const isNoTrade = item.signal === 'NO TRADE';
             const isSelected = selectedPair.pair === item.pair;
+            const isPositive = (item.changePercent || 0) >= 0;
 
             return (
               <div
@@ -296,7 +368,7 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
                         {item.pair}
                       </span>
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
-                        {item.timeframe}
+                        {selectedTimeframe}
                       </span>
                     </div>
                     <span className="text-xs text-slate-400">{item.trend}</span>
@@ -304,19 +376,22 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
 
                   <div className="text-right">
                     <div className="font-mono text-base font-bold text-white tracking-tight">
-                      {item.price}
+                      {typeof item.price === 'number' ? item.price.toFixed(item.pair.includes('JPY') ? 2 : 5) : item.price}
                     </div>
                     <div
                       className={`text-xs font-mono font-medium flex items-center justify-end space-x-1 ${
-                        item.isPositive ? 'text-emerald-400' : 'text-rose-400'
+                        isPositive ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {item.isPositive ? (
+                      {isPositive ? (
                         <TrendingUp className="w-3 h-3" />
                       ) : (
                         <TrendingDown className="w-3 h-3" />
                       )}
-                      <span>{item.change}</span>
+                      <span>
+                        {isPositive ? '+' : ''}
+                        {item.changePercent ? item.changePercent.toFixed(2) : '0.00'}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -371,7 +446,7 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
                 </div>
 
                 {/* Bottom: Entry, TP1, TP2, TP3, SL Card */}
-                {!isNoTrade ? (
+                {!isNoTrade && item.entry ? (
                   <div className="space-y-1.5 bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 text-xs font-mono">
                     <div className="flex justify-between items-center text-slate-400">
                       <span>Potential Entry:</span>
@@ -405,13 +480,68 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
         </div>
       </div>
 
+      {/* Selected Pair Candlestick Feed (Phase 2 Ingestion Table) */}
+      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <CandlestickChart className="w-5 h-5 text-blue-400" />
+            <div>
+              <h3 className="text-base font-bold text-white">
+                Historical Candlestick Feed: {selectedPair.pair} ({selectedTimeframe})
+              </h3>
+              <p className="text-xs text-slate-400">
+                Real-time OHLCV bars ingested from backend provider abstraction layer
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-mono px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+            {loadingCandles ? 'Ingesting...' : `${candlesData.length} Recent Bars`}
+          </span>
+        </div>
+
+        {/* OHLCV Mini-Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs font-mono">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-400">
+                <th className="py-2 px-3">Timestamp (UTC)</th>
+                <th className="py-2 px-3">Open</th>
+                <th className="py-2 px-3">High</th>
+                <th className="py-2 px-3">Low</th>
+                <th className="py-2 px-3">Close</th>
+                <th className="py-2 px-3 text-right">Volume</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {candlesData.slice(-8).reverse().map((c, i) => {
+                const isBull = c.close >= c.open;
+                return (
+                  <tr key={i} className="hover:bg-slate-900/40 transition">
+                    <td className="py-2 px-3 text-slate-400">
+                      {new Date(c.timestamp).toLocaleString()}
+                    </td>
+                    <td className="py-2 px-3 text-slate-300">{c.open}</td>
+                    <td className="py-2 px-3 text-emerald-400">{c.high}</td>
+                    <td className="py-2 px-3 text-rose-400">{c.low}</td>
+                    <td className={`py-2 px-3 font-bold ${isBull ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {c.close}
+                    </td>
+                    <td className="py-2 px-3 text-right text-slate-400">{c.volume}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Selected Pair Detailed Breakdown & Reasons */}
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Cpu className="w-5 h-5 text-blue-400" />
             <h3 className="text-base font-bold text-white">
-              Signal Engine Breakdown: {selectedPair.pair} ({selectedPair.timeframe})
+              Signal Engine Breakdown: {selectedPair.pair} ({selectedTimeframe})
             </h3>
           </div>
           <span className="text-xs font-mono text-slate-400">
@@ -468,7 +598,7 @@ export const Dashboard = ({ healthInfo, isApiOnline, latency, onRefreshHealth, i
               ForexAI Analyzer Architecture Roadmap
             </h3>
             <p className="text-xs text-slate-400">
-              Phase 1 is complete. Development follows strict sequential progression.
+              Phases 1 & 2 are complete. Development follows strict sequential progression.
             </p>
           </div>
         </div>

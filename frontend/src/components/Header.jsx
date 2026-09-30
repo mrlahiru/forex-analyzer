@@ -1,8 +1,10 @@
 import React from 'react';
-import { Activity, Database, Server, User, Bell, ShieldCheck } from 'lucide-react';
+import { Activity, Database, Server, User, Bell, Radio } from 'lucide-react';
 
-export const Header = ({ healthInfo, isApiOnline, latency }) => {
+export const Header = ({ healthInfo, isApiOnline, latency, providerStatus }) => {
   const isDbConnected = healthInfo?.database?.connected;
+  const isLive = providerStatus?.isLive;
+  const activeProvider = providerStatus?.activeProvider || 'twelve_data';
 
   return (
     <header className="h-16 border-b border-slate-800/80 bg-[#0B0F19]/90 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
@@ -22,16 +24,18 @@ export const Header = ({ healthInfo, isApiOnline, latency }) => {
               </span>
             </div>
             <span className="text-[10px] text-slate-400 font-mono tracking-wider block">
-              PHASE 1 CORE ACTIVE
+              PHASE 2 MARKET DATA READY
             </span>
           </div>
         </div>
 
-        {/* Market Status Indicator */}
+        {/* Market Data Provider Status */}
         <div className="hidden lg:flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Forex Market:</span>
-          <span className="text-emerald-400 font-semibold">24h Interbank Active</span>
+          <Radio className={`w-3.5 h-3.5 ${isLive ? 'text-emerald-400 animate-pulse' : 'text-cyan-400'}`} />
+          <span className="text-slate-400">Data Feed:</span>
+          <span className={`font-semibold ${isLive ? 'text-emerald-400' : 'text-cyan-300'}`}>
+            {isLive ? `Live (${activeProvider})` : 'Simulation Fallback'}
+          </span>
         </div>
       </div>
 

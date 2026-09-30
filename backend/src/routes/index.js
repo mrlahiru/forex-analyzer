@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import healthRoutes from './healthRoutes.js';
+import marketRoutes from './marketRoutes.js';
 
 const router = Router();
 
 // Base health check
 router.use('/health', healthRoutes);
+
+// Market Data API (Phase 2)
+router.use('/markets', marketRoutes);
 
 // Base API route placeholder info
 router.get('/', (req, res) => {
@@ -15,7 +19,7 @@ router.get('/', (req, res) => {
     status: 'online',
     endpoints: {
       health: '/api/health',
-      markets: '/api/markets (Phase 2)',
+      markets: '/api/markets',
       signals: '/api/signals (Phase 4)',
       analysis: '/api/analysis (Phase 3/7)',
       auth: '/api/auth (Phase 1/Auth)',
