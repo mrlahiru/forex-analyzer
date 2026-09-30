@@ -26,10 +26,11 @@ const navItems = [
 
 export const Sidebar = ({ activeTab = 'dashboard', setActiveTab }) => {
   return (
-    <aside className="w-64 border-r border-slate-800/80 bg-[#090D16] flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] sticky top-16">
-      <div className="p-4 space-y-1">
-        <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          Navigation
+    <aside className="w-64 border-r border-white/[0.07] bg-[#070A12]/90 backdrop-blur-xl flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] sticky top-16 z-20">
+      <div className="p-4 space-y-1.5">
+        <div className="px-3.5 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center justify-between">
+          <span>Command Center</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
         </div>
 
         {navItems.map((item) => {
@@ -40,22 +41,28 @@ export const Sidebar = ({ activeTab = 'dashboard', setActiveTab }) => {
             <button
               key={item.id}
               onClick={() => setActiveTab && setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group relative ${
                 isCurrent
-                  ? 'bg-blue-600/15 text-blue-400 border border-blue-500/25 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-transparent text-white border-l-2 border-l-blue-400 border-y border-r border-white/[0.06] shadow-lg shadow-blue-500/10'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40 hover:translate-x-0.5'
               }`}
             >
               <div className="flex items-center space-x-3">
                 <Icon
-                  className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                    isCurrent ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-300'
+                  className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${
+                    isCurrent ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'
                   }`}
                 />
-                <span>{item.name}</span>
+                <span className="tracking-tight">{item.name}</span>
               </div>
               {item.badge && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-400 border border-slate-700/50">
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-semibold transition-colors ${
+                    isCurrent
+                      ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
+                      : 'bg-slate-800/80 text-slate-400 border border-slate-700/40 group-hover:text-slate-300'
+                  }`}
+                >
                   {item.badge}
                 </span>
               )}
@@ -65,13 +72,16 @@ export const Sidebar = ({ activeTab = 'dashboard', setActiveTab }) => {
       </div>
 
       {/* Safety Notice Footer Card */}
-      <div className="p-4 m-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
-        <div className="flex items-center space-x-2 text-xs font-semibold text-amber-400">
-          <ShieldAlert className="w-4 h-4 shrink-0" />
-          <span>Analytical Platform</span>
+      <div className="p-4 m-3.5 rounded-2xl bg-gradient-to-b from-[#0F172A]/80 to-[#0A0F1D]/90 border border-amber-500/20 shadow-lg relative overflow-hidden card-shine">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="flex items-center space-x-2 text-xs font-bold text-amber-400">
+          <div className="p-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <ShieldAlert className="w-3.5 h-3.5" />
+          </div>
+          <span className="tracking-tight">Analytical Station</span>
         </div>
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          Signals are rule-based quantitative evaluations. Real trade execution is prohibited.
+        <p className="text-[11px] text-slate-400 leading-relaxed mt-2">
+          Signals are rule-based quantitative evaluations. Real trade broker execution is prohibited.
         </p>
       </div>
     </aside>

@@ -38,27 +38,34 @@ export const MainLayout = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#080B11] flex flex-col text-slate-100">
-      <Header
-        healthInfo={healthInfo}
-        isApiOnline={isApiOnline}
-        latency={latency}
-        providerStatus={providerStatus}
-      />
-      <div className="flex flex-1">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 overflow-y-auto bg-[#080B11]">
-          {React.cloneElement(children, {
-            healthInfo,
-            providerStatus,
-            isApiOnline,
-            latency,
-            onRefreshHealth: checkStatus,
-            isRefreshing,
-            activeTab,
-            setActiveTab,
-          })}
-        </main>
+    <div className="min-h-screen bg-[#060911] flex flex-col text-slate-100 relative overflow-hidden">
+      {/* Ambient Decorative Lighting */}
+      <div className="fixed inset-0 pointer-events-none aurora-glow z-0 opacity-70" />
+      <div className="fixed inset-0 pointer-events-none cyber-grid opacity-30 z-0" />
+
+      {/* Primary Application Shell */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header
+          healthInfo={healthInfo}
+          isApiOnline={isApiOnline}
+          latency={latency}
+          providerStatus={providerStatus}
+        />
+        <div className="flex flex-1">
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <main className="flex-1 overflow-y-auto">
+            {React.cloneElement(children, {
+              healthInfo,
+              providerStatus,
+              isApiOnline,
+              latency,
+              onRefreshHealth: checkStatus,
+              isRefreshing,
+              activeTab,
+              setActiveTab,
+            })}
+          </main>
+        </div>
       </div>
     </div>
   );

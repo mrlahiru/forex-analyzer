@@ -80,19 +80,19 @@ export const BacktestConsole = ({
   const areaPoints = `0,${svgHeight} ${polylineStr} ${svgWidth},${svgHeight}`;
 
   return (
-    <div className="rounded-2xl bg-[#0E1320] border border-blue-500/40 p-6 space-y-6 shadow-2xl relative overflow-hidden">
+    <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-6 relative overflow-hidden card-shine">
       {/* Ambient background glow */}
-      <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 relative z-10">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-tr from-indigo-600/20 to-blue-600/20 border border-blue-500/30 text-blue-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5 relative z-10">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-3 rounded-2xl bg-gradient-to-tr from-indigo-600/20 to-blue-600/20 border border-blue-500/30 text-blue-400 shadow-sm shadow-blue-500/10">
             <LineChart className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white flex items-center space-x-2">
-              <span>Phase 10 Historical Strategy Backtesting Engine</span>
+            <h3 className="text-lg font-black text-white flex items-center space-x-2 tracking-tight">
+              <span>Historical Strategy Backtesting Engine</span>
             </h3>
             <p className="text-xs text-slate-400">
               Quantitative simulation of the 100-point rule model, multi-target TP1/2/3 exits, and drawdown analysis
@@ -103,7 +103,7 @@ export const BacktestConsole = ({
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-bold text-white shadow-lg shadow-blue-500/20 transition active:scale-95 disabled:opacity-50"
+          className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-mono font-bold text-white shadow-lg shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           {loading ? (
             <RotateCcw className="w-4 h-4 animate-spin text-white" />
@@ -115,14 +115,14 @@ export const BacktestConsole = ({
       </div>
 
       {/* Backtest Configuration Controls Bar */}
-      <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono text-xs relative z-10">
+      <div className="bg-[#060A14]/70 p-4 rounded-2xl border border-white/[0.08] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 font-mono text-xs relative z-10 card-shine">
         {/* Pair */}
         <div className="space-y-1">
           <label className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Pair</label>
           <select
             value={pair}
             onChange={(e) => setPair(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#080D1A] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
           >
             {pairs.map((p) => (
               <option key={p} value={p}>{p}</option>
@@ -136,7 +136,7 @@ export const BacktestConsole = ({
           <select
             value={timeframe}
             onChange={(e) => setTimeframe(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#080D1A] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
           >
             {timeframes.map((tf) => (
               <option key={tf} value={tf}>{tf}</option>
@@ -152,7 +152,7 @@ export const BacktestConsole = ({
             step="500"
             value={initialBalance}
             onChange={(e) => setInitialBalance(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#080D1A] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -162,7 +162,7 @@ export const BacktestConsole = ({
           <select
             value={riskPercentage}
             onChange={(e) => setRiskPercentage(Number(e.target.value))}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#080D1A] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
           >
             <option value={0.5}>0.5% (Safe)</option>
             <option value={1.0}>1.0% (Standard)</option>
@@ -177,7 +177,7 @@ export const BacktestConsole = ({
           <select
             value={lookbackBars}
             onChange={(e) => setLookbackBars(Number(e.target.value))}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#080D1A] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
           >
             <option value={150}>150 Bars</option>
             <option value={250}>250 Bars</option>
@@ -191,7 +191,7 @@ export const BacktestConsole = ({
           <select
             value={strategy}
             onChange={(e) => setStrategy(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#080D1A] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
           >
             <option value="DETERMINISTIC_CORE">100-pt Core (65+)</option>
             <option value="CONSERVATIVE">Conservative (75+)</option>
@@ -201,89 +201,89 @@ export const BacktestConsole = ({
       </div>
 
       {/* KPI Performance Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono text-xs relative z-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono text-xs relative z-10 tabular-nums">
         {/* Win Rate */}
-        <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block font-sans font-bold">Win Rate</span>
-          <div className="text-xl font-bold text-emerald-400">
+        <div className="glass-card p-3.5 rounded-2xl border border-white/[0.08] space-y-1 card-shine">
+          <span className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Win Rate</span>
+          <div className="text-xl font-black text-emerald-400">
             {kpis.winRate}%
           </div>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-[10px] text-slate-400 block font-mono">
             {kpis.winCount}W / {kpis.lossCount}L ({kpis.totalTrades} Trades)
           </span>
         </div>
 
         {/* Profit Factor */}
-        <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block font-sans font-bold">Profit Factor</span>
-          <div className="text-xl font-bold text-blue-400">
+        <div className="glass-card p-3.5 rounded-2xl border border-white/[0.08] space-y-1 card-shine">
+          <span className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Profit Factor</span>
+          <div className="text-xl font-black text-blue-400">
             {kpis.profitFactor}x
           </div>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-[10px] text-slate-400 block font-mono">
             Gross Gain vs Loss
           </span>
         </div>
 
         {/* Net Profit ($) */}
-        <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block font-sans font-bold">Net Profit</span>
-          <div className={`text-xl font-bold ${isNetPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+        <div className="glass-card p-3.5 rounded-2xl border border-white/[0.08] space-y-1 card-shine">
+          <span className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Net Profit</span>
+          <div className={`text-xl font-black ${isNetPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
             {isNetPositive ? `+$${netProfit.toLocaleString()}` : `-$${Math.abs(netProfit).toLocaleString()}`}
           </div>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-[10px] text-slate-400 block font-mono">
             {results?.netProfitPct ? `${results.netProfitPct}% Return` : '0%'}
           </span>
         </div>
 
         {/* Max Drawdown */}
-        <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block font-sans font-bold">Max Drawdown</span>
-          <div className="text-xl font-bold text-amber-400">
+        <div className="glass-card p-3.5 rounded-2xl border border-white/[0.08] space-y-1 card-shine">
+          <span className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Max Drawdown</span>
+          <div className="text-xl font-black text-amber-400">
             {kpis.maxDrawdownPct}%
           </div>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-[10px] text-slate-400 block font-mono">
             Peak to Trough
           </span>
         </div>
 
         {/* Total Pips */}
-        <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block font-sans font-bold">Total Pips</span>
-          <div className={`text-xl font-bold ${results?.totalPips >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+        <div className="glass-card p-3.5 rounded-2xl border border-white/[0.08] space-y-1 card-shine">
+          <span className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Total Pips</span>
+          <div className={`text-xl font-black ${results?.totalPips >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
             {results?.totalPips >= 0 ? `+${results?.totalPips || 0}` : results?.totalPips || 0}
           </div>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-[10px] text-slate-400 block font-mono">
             Across {kpis.totalTrades} positions
           </span>
         </div>
 
         {/* Avg Duration */}
-        <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block font-sans font-bold">Avg Hold Time</span>
-          <div className="text-xl font-bold text-white">
+        <div className="glass-card p-3.5 rounded-2xl border border-white/[0.08] space-y-1 card-shine">
+          <span className="text-[10px] text-slate-400 uppercase block font-sans font-bold">Avg Hold Time</span>
+          <div className="text-xl font-black text-white">
             {kpis.avgDurationBars || 0} Bars
           </div>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-[10px] text-slate-400 block font-mono">
             Per position
           </span>
         </div>
       </div>
 
       {/* Equity Curve Graph */}
-      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 relative z-10">
-        <div className="flex items-center justify-between">
+      <div className="bg-[#060A14]/70 p-5 rounded-2xl border border-white/[0.08] space-y-3.5 relative z-10 card-shine">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-1.5">
             <TrendingUp className="w-4 h-4 text-blue-400" />
             <span>Simulated Equity Curve Progression</span>
           </h4>
-          <div className="flex items-center space-x-3 text-xs font-mono">
-            <span className="text-slate-400">Start: <b>${results?.initialBalance || initialBalance}</b></span>
+          <div className="flex items-center space-x-3 text-xs font-mono tabular-nums">
+            <span className="text-slate-400">Start: <b className="text-white">${results?.initialBalance || initialBalance}</b></span>
             <span className="text-slate-400">Final: <b className={isNetPositive ? 'text-emerald-400' : 'text-rose-400'}>${results?.finalBalance || initialBalance}</b></span>
           </div>
         </div>
 
         {/* SVG Equity Graph */}
-        <div className="w-full bg-[#080B11] rounded-lg p-2 border border-slate-800/80 overflow-hidden relative">
+        <div className="w-full bg-[#04070F] rounded-xl p-3 border border-white/[0.06] overflow-hidden relative">
           {equityCurve.length > 1 ? (
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -302,7 +302,7 @@ export const BacktestConsole = ({
                 y1={svgHeight - ((initialBalance - minEquity) / equityRange) * (svgHeight - 20) - 10}
                 x2={svgWidth}
                 y2={svgHeight - ((initialBalance - minEquity) / equityRange) * (svgHeight - 20) - 10}
-                stroke="#334155"
+                stroke="#1E293B"
                 strokeDasharray="4 4"
                 strokeWidth="1"
               />
@@ -325,21 +325,21 @@ export const BacktestConsole = ({
       </div>
 
       {/* Trade Log Table */}
-      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 relative z-10">
-        <div className="flex items-center justify-between">
+      <div className="bg-[#060A14]/70 p-5 rounded-2xl border border-white/[0.08] space-y-3.5 relative z-10 card-shine">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-1.5">
             <Clock className="w-4 h-4 text-emerald-400" />
             <span>Simulated Trade History Log</span>
           </h4>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[11px] font-mono text-slate-400 font-semibold">
             {trades.length} Closed Trades
           </span>
         </div>
 
         <div className="overflow-x-auto max-h-[300px]">
-          <table className="w-full text-left text-xs font-mono">
+          <table className="w-full text-left text-xs font-mono tabular-nums">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 text-[11px] sticky top-0 bg-[#0E1320]">
+              <tr className="border-b border-white/[0.06] text-slate-400 text-[11px] sticky top-0 bg-[#060A14]">
                 <th className="py-2 px-2.5">#</th>
                 <th className="py-2 px-2.5">Exit Time</th>
                 <th className="py-2 px-2.5">Side</th>
@@ -351,27 +351,27 @@ export const BacktestConsole = ({
                 <th className="py-2 px-2.5 text-right">Balance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-white/[0.04]">
               {trades.slice().reverse().map((t, i) => {
                 const isWin = t.profitDollar > 0;
                 return (
-                  <tr key={t.id || i} className="hover:bg-slate-800/40 transition">
-                    <td className="py-2 px-2.5 text-slate-500">{t.id}</td>
-                    <td className="py-2 px-2.5 text-slate-400 text-[11px]">
+                  <tr key={t.id || i} className="hover:bg-white/[0.04] transition">
+                    <td className="py-2.5 px-2.5 text-slate-500">{t.id}</td>
+                    <td className="py-2.5 px-2.5 text-slate-400 text-[11px]">
                       {new Date(t.exitTime).toLocaleDateString()} {new Date(t.exitTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="py-2 px-2.5">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    <td className="py-2.5 px-2.5">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                         t.direction === 'BUY'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'bg-rose-500/20 text-rose-400'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                       }`}>
                         {t.direction}
                       </span>
                     </td>
-                    <td className="py-2 px-2.5 text-slate-300">{t.entryPrice}</td>
-                    <td className="py-2 px-2.5 text-slate-200">{t.exitPrice}</td>
-                    <td className="py-2 px-2.5">
+                    <td className="py-2.5 px-2.5 text-slate-300">{t.entryPrice}</td>
+                    <td className="py-2.5 px-2.5 text-slate-200">{t.exitPrice}</td>
+                    <td className="py-2.5 px-2.5">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                         t.outcome.includes('TP')
                           ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
@@ -380,13 +380,13 @@ export const BacktestConsole = ({
                         {t.outcome.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className={`py-2 px-2.5 font-bold ${isWin ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <td className={`py-2.5 px-2.5 font-bold ${isWin ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {t.pips >= 0 ? `+${t.pips}` : t.pips}
                     </td>
-                    <td className={`py-2 px-2.5 font-bold ${isWin ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <td className={`py-2.5 px-2.5 font-bold ${isWin ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {isWin ? `+$${t.profitDollar}` : `-$${Math.abs(t.profitDollar)}`}
                     </td>
-                    <td className="py-2 px-2.5 text-right font-bold text-white">
+                    <td className="py-2.5 px-2.5 text-right font-bold text-white">
                       ${t.balanceAfter?.toLocaleString()}
                     </td>
                   </tr>

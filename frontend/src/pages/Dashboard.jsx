@@ -585,28 +585,35 @@ export const Dashboard = ({
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner: Operational Status */}
-      <div className="rounded-2xl bg-gradient-to-r from-blue-900/30 via-slate-900 to-indigo-900/20 border border-blue-500/30 p-5 backdrop-blur-md shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
+      {/* Top Banner: Institutional Mission Control Deck */}
+      <div className="glass-panel rounded-3xl p-6 relative overflow-hidden card-shine border border-white/[0.09] shadow-2xl">
+        {/* Ambient Corner Radial Accents */}
+        <div className="absolute -top-32 -right-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+          <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span className="font-mono font-bold">REAL-TIME AUTO-TICK ACTIVE (3s)</span>
+              <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-2 shadow-sm shadow-emerald-500/10">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>WS TICK STREAM LIVE</span>
               </span>
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                WEBSOCKET LIVE
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                QUANT 100-PT SCORING
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                AI COGNITIVE SYNTHESIS
               </span>
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-white">
-              ForexAI Analyzer — Full-Stack Algorithmic Signal & Quantitative Risk Platform
+            <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+              ForexAI Quantitative Terminal — Algorithmic Market Station
             </h1>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Deterministic 100-point signal engine, institutional multi-target TP/SL execution, TradingView charts, automated background scanner, Telegram alerts, backtesting suite & production Docker stack.
+              Real-time multi-currency orderflow scoring, institutional ATR stop-loss, dynamic multi-target TP execution, TradingView charts, background scanner & quantitative risk engine.
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 shrink-0">
             <button
               onClick={() => {
                 onRefreshHealth();
@@ -614,7 +621,7 @@ export const Dashboard = ({
                 loadPairDetails(selectedPair.pair, selectedTimeframe);
               }}
               disabled={isRefreshing || loadingSignal}
-              className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition active:scale-95 disabled:opacity-50"
+              className="flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-700/90 hover:from-slate-700 hover:to-slate-600 text-xs font-bold text-white border border-white/10 shadow-lg shadow-black/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loadingSignal ? 'animate-spin text-blue-400' : ''}`} />
               <span>{loadingSignal ? 'Scoring...' : 'Recalculate Signals'}</span>
@@ -623,33 +630,33 @@ export const Dashboard = ({
               href={`http://localhost:5001/api/risk/parameters/${selectedPair.pair.replace('/', '')}?direction=${isSell ? 'SELL' : 'BUY'}&timeframe=${selectedTimeframe}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-xs font-semibold text-blue-400 border border-blue-500/30 transition"
+              className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-blue-600/15 hover:bg-blue-600/25 text-xs font-bold text-blue-300 border border-blue-400/20 transition-all shadow-sm"
             >
-              <span>Risk Params JSON</span>
+              <span>Risk JSON</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
 
-        {/* Live Diagnostics Mini-Bar */}
-        <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Active Pair</span>
-            <span className="text-blue-400 font-semibold">{selectedPair.pair} ({selectedTimeframe})</span>
+        {/* Live Diagnostics Frosted Mini-Cards */}
+        <div className="mt-5 pt-4 border-t border-white/[0.08] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono relative z-10">
+          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Active Pair</span>
+            <span className="text-blue-400 font-extrabold text-sm">{selectedPair.pair} ({selectedTimeframe})</span>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Engine Direction</span>
-            <span className={`font-bold ${isBuy ? 'text-emerald-400' : isSell ? 'text-rose-400' : 'text-slate-400'}`}>
+          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Engine Direction</span>
+            <span className={`font-black text-sm ${isBuy ? 'text-emerald-400' : isSell ? 'text-rose-400' : 'text-slate-400'}`}>
               {activeSignalDetails?.signal?.replace('_', ' ') || 'ANALYZING...'}
             </span>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Signal Score</span>
-            <span className="text-amber-400 font-semibold">{activeSignalDetails?.score || 0}/100</span>
+          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Signal Score</span>
+            <span className="text-amber-400 font-extrabold text-sm">{activeSignalDetails?.score || 0}/100</span>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Max Risk Ratio</span>
-            <span className="text-teal-400 font-semibold">
+          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Multi-Target Protocol</span>
+            <span className="text-teal-400 font-extrabold text-sm">
               TP1 (1:1) / TP2 (1:2) / TP3 (1:3)
             </span>
           </div>
@@ -657,7 +664,7 @@ export const Dashboard = ({
       </div>
 
       {/* Workspace Quick-Bar Selector */}
-      <div className="flex items-center justify-between bg-[#0E1320] border border-slate-800 p-2 rounded-2xl overflow-x-auto shadow-md">
+      <div className="glass-panel p-2 rounded-2xl border border-white/[0.08] shadow-xl flex items-center justify-between overflow-x-auto card-shine">
         <div className="flex items-center space-x-1">
           {[
             { id: 'dashboard', label: 'All Workspaces', icon: LayoutDashboard },
@@ -676,14 +683,14 @@ export const Dashboard = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab && setActiveTab(tab.id)}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition ${
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   isCurrent
-                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 text-white shadow-lg shadow-blue-500/25 border border-blue-400/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="whitespace-nowrap">{tab.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />
+                <span className="whitespace-nowrap tracking-tight">{tab.label}</span>
               </button>
             );
           })}
@@ -739,34 +746,34 @@ export const Dashboard = ({
 
       {/* Market Overview Section */}
       {showMarkets && (
-      <div className="space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-6 card-shine">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-bold tracking-tight text-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <h2 className="text-xl font-extrabold tracking-tight text-white">
                 Market Overview & Signal Matrix
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 shadow-sm shadow-emerald-500/10">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                 <span>WS TICK STREAM</span>
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Real-time scoring across 7 core currency pairs with dynamic multi-target levels
+            <p className="text-xs text-slate-400 mt-0.5">
+              Continuous multi-pair scoring, algorithmic bias consensus, and automated dynamic target brackets
             </p>
           </div>
 
           {/* Provider Selector, Sync & Timeframe Switcher */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Live Feed Mode Selector */}
-            <div className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+            <div className="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-2xl border border-white/[0.08] text-xs font-mono shadow-inner">
               <button
                 onClick={() => handleSwitchProvider('yahoo_finance')}
                 disabled={switchingProvider}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   (marketStatus?.activeProvider || 'yahoo_finance') === 'yahoo_finance'
-                    ? 'bg-emerald-600 text-white font-semibold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
                 title="100% Free Live Forex Quotes with No API Credit Limits"
               >
@@ -775,10 +782,10 @@ export const Dashboard = ({
               <button
                 onClick={() => handleSwitchProvider('twelve_data')}
                 disabled={switchingProvider}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   marketStatus?.activeProvider === 'twelve_data'
-                    ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
                 title={`Twelve Data Eco-Mode (${marketStatus?.twelveDataUsage?.creditsUsed || 0}/800 used)`}
               >
@@ -787,10 +794,10 @@ export const Dashboard = ({
               <button
                 onClick={() => handleSwitchProvider('mock')}
                 disabled={switchingProvider}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   marketStatus?.activeProvider === 'mock'
-                    ? 'bg-amber-600 text-white font-semibold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md shadow-amber-500/20'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
                 title="Simulated Random Walk Ticker"
               >
@@ -802,7 +809,7 @@ export const Dashboard = ({
             <button
               onClick={() => loadMarketAndSignals()}
               disabled={loadingSignal}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center space-x-1.5 transition active:scale-95 disabled:opacity-50"
+              className="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 text-xs font-bold border border-white/[0.08] flex items-center space-x-1.5 transition-all active:scale-95 disabled:opacity-50 shadow-md cursor-pointer"
               title="Force instant quote refresh"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loadingSignal ? 'animate-spin text-blue-400' : ''}`} />
@@ -810,15 +817,15 @@ export const Dashboard = ({
             </button>
 
             {/* Timeframe Switcher */}
-            <div className="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            <div className="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-2xl border border-white/[0.08] shadow-inner">
               {TIMEFRAMES.map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setSelectedTimeframe(tf)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition ${
+                  className={`px-2.5 py-1 rounded-xl text-xs font-mono font-bold transition-all duration-200 cursor-pointer ${
                     selectedTimeframe === tf
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   {tf}
@@ -829,7 +836,7 @@ export const Dashboard = ({
         </div>
 
         {/* Currency Pair Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {pairsData.map((item) => {
             const cardIsBuy = item.signal === 'BUY';
             const cardIsSell = item.signal === 'SELL';
@@ -841,59 +848,70 @@ export const Dashboard = ({
               <div
                 key={item.pair}
                 onClick={() => setSelectedPair(item)}
-                className={`cursor-pointer rounded-2xl p-5 border transition-all duration-200 relative overflow-hidden ${
+                className={`cursor-pointer rounded-3xl p-5 border transition-all duration-300 relative overflow-hidden group card-shine ${
                   isSelected
-                    ? 'bg-[#12192A] border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/30'
-                    : 'bg-[#0E1320] border-slate-800/90 hover:border-slate-700 hover:bg-[#111726]'
+                    ? 'bg-gradient-to-b from-[#11192E] via-[#0E1526] to-[#090D18] border-blue-500/60 shadow-2xl shadow-blue-500/20 ring-1 ring-blue-400/40 transform -translate-y-1'
+                    : 'bg-[#0B101D]/80 border-white/[0.07] hover:border-slate-600 hover:bg-[#0E1526] hover:-translate-y-0.5'
                 }`}
               >
+                {/* Directional Top Accent Strip */}
+                <div
+                  className={`absolute top-0 left-0 right-0 h-1 ${
+                    cardIsBuy
+                      ? 'bg-gradient-to-r from-emerald-400 via-teal-400 to-transparent'
+                      : cardIsSell
+                      ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-transparent'
+                      : 'bg-slate-700/60'
+                  }`}
+                />
+
                 {/* Top: Pair & Price */}
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="space-y-1">
                     <div className="flex items-center space-x-2">
-                      <span className="text-base font-extrabold tracking-tight text-white">
+                      <span className="text-lg font-black tracking-tight text-white group-hover:text-blue-200 transition-colors">
                         {item.pair}
                       </span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white/[0.06] text-slate-300 border border-white/[0.05]">
                         {selectedTimeframe}
                       </span>
                       {item.isLive ? (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+                        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 shadow-sm shadow-emerald-500/10">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                          <span>{item.provider === 'yahoo_finance' ? 'Live Yahoo' : item.provider === 'twelve_data' ? 'Live 12Data' : 'Live Feed'}</span>
+                          <span>{item.provider === 'yahoo_finance' ? 'Yahoo Live' : item.provider === 'twelve_data' ? '12Data Eco' : 'Live'}</span>
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
-                          Sim Ticker
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
+                          Sim
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-slate-400 block mt-0.5">{item.trend}</span>
+                    <span className="text-xs text-slate-400 block font-medium">{item.trend}</span>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right space-y-1">
                     <div
-                      className={`font-mono text-base font-bold tracking-tight transition-all duration-300 px-2 py-0.5 rounded-lg inline-block ${
+                      className={`tabular-nums text-lg font-black tracking-tight transition-all duration-300 px-2.5 py-0.5 rounded-xl inline-block ${
                         priceDeltas[item.pair] === 'up'
-                          ? 'text-emerald-300 bg-emerald-500/25 scale-105 shadow-md shadow-emerald-500/20'
+                          ? 'text-emerald-300 bg-emerald-500/25 scale-105 shadow-lg shadow-emerald-500/30'
                           : priceDeltas[item.pair] === 'down'
-                          ? 'text-rose-300 bg-rose-500/25 scale-105 shadow-md shadow-rose-500/20'
+                          ? 'text-rose-300 bg-rose-500/25 scale-105 shadow-lg shadow-rose-500/30'
                           : 'text-white'
                       }`}
                     >
                       {typeof item.price === 'number'
-                        ? item.price.toFixed(item.pair.includes('JPY') ? 2 : 5)
+                        ? item.price.toFixed(item.pair.includes('JPY') ? 3 : 5)
                         : item.price}
                     </div>
                     <div
-                      className={`text-xs font-mono font-medium flex items-center justify-end space-x-1 ${
+                      className={`text-xs font-mono font-bold flex items-center justify-end space-x-1 ${
                         isPositive ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
                       {isPositive ? (
-                        <TrendingUp className="w-3 h-3" />
+                        <TrendingUp className="w-3.5 h-3.5" />
                       ) : (
-                        <TrendingDown className="w-3 h-3" />
+                        <TrendingDown className="w-3.5 h-3.5" />
                       )}
                       <span>
                         {isPositive ? '+' : ''}
@@ -904,77 +922,78 @@ export const Dashboard = ({
                 </div>
 
                 {/* Middle: Signal Badge & Score Bar */}
-                <div className="my-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
+                <div className="my-3.5 pt-3 border-t border-white/[0.06] flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span
-                      className={`px-3 py-1 rounded-lg text-xs font-bold tracking-wide uppercase flex items-center space-x-1.5 ${
+                      className={`px-3 py-1 rounded-xl text-xs font-black tracking-wider uppercase flex items-center space-x-1.5 shadow-sm ${
                         cardIsBuy
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10'
                           : cardIsSell
-                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                          : 'bg-slate-800 text-slate-400 border border-slate-700'
+                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-rose-500/10'
+                          : 'bg-slate-800/90 text-slate-400 border border-slate-700/80'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          cardIsBuy ? 'bg-emerald-400' : cardIsSell ? 'bg-rose-400' : 'bg-slate-500'
+                          cardIsBuy ? 'bg-emerald-400 animate-pulse' : cardIsSell ? 'bg-rose-400 animate-pulse' : 'bg-slate-500'
                         }`}
-                      ></span>
+                      />
                       <span>{item.signal?.replace('_', ' ')}</span>
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-400 border border-white/[0.05]">
                       {item.confidence}
                     </span>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-xs font-mono font-bold text-white">
-                      Score: {item.score}/100
+                    <span className="text-xs font-mono font-black text-white">
+                      {item.score}<span className="text-slate-500 text-[10px]">/100</span>
                     </span>
                   </div>
                 </div>
 
                 {/* Score Progress Bar */}
-                <div className="w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden mb-4">
+                <div className="w-full bg-slate-900/90 rounded-full h-1.5 overflow-hidden mb-3.5 border border-white/[0.05]">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${
+                    className={`h-full rounded-full transition-all duration-700 ${
                       cardIsBuy
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-sm shadow-emerald-500/50'
                         : cardIsSell
-                        ? 'bg-gradient-to-r from-rose-500 to-red-400'
+                        ? 'bg-gradient-to-r from-rose-500 to-red-400 shadow-sm shadow-rose-500/50'
                         : 'bg-slate-600'
                     }`}
-                    style={{ width: `${item.score}%` }}
-                  ></div>
+                    style={{ width: `${Math.min(100, Math.max(5, item.score))}%` }}
+                  />
                 </div>
 
                 {/* Bottom: Dynamic Entry, TP1, TP2, TP3, SL Card */}
                 {!cardIsNoTrade && item.entry ? (
-                  <div className="space-y-1.5 bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 text-xs font-mono">
+                  <div className="space-y-1.5 bg-[#060A14]/75 rounded-2xl p-3 border border-white/[0.06] text-xs font-mono tabular-nums">
                     <div className="flex justify-between items-center text-slate-400">
-                      <span>Potential Entry:</span>
-                      <span className="text-white font-semibold">{item.entry}</span>
+                      <span className="text-[11px]">Potential Entry:</span>
+                      <span className="text-white font-bold">{item.entry}</span>
                     </div>
                     <div className="flex justify-between items-center text-emerald-400">
-                      <span>TP1 (Conservative 1:1):</span>
-                      <span className="font-semibold">{item.tp1}</span>
+                      <span className="text-[11px]">TP1 (1:1 Ratio):</span>
+                      <span className="font-bold">{item.tp1}</span>
                     </div>
                     <div className="flex justify-between items-center text-teal-400">
-                      <span>TP2 (Structural 1:2):</span>
-                      <span className="font-semibold">{item.tp2}</span>
+                      <span className="text-[11px]">TP2 (1:2 Ratio):</span>
+                      <span className="font-bold">{item.tp2}</span>
                     </div>
                     <div className="flex justify-between items-center text-cyan-400">
-                      <span>TP3 (Structural 1:3):</span>
-                      <span className="font-semibold">{item.tp3}</span>
+                      <span className="text-[11px]">TP3 (1:3 Ratio):</span>
+                      <span className="font-bold">{item.tp3}</span>
                     </div>
-                    <div className="flex justify-between items-center text-rose-400 pt-1 border-t border-slate-800/60">
-                      <span>Potential SL:</span>
-                      <span className="font-semibold">{item.sl}</span>
+                    <div className="flex justify-between items-center text-rose-400 pt-1 border-t border-white/[0.06]">
+                      <span className="text-[11px]">Stop Loss (ATR):</span>
+                      <span className="font-bold">{item.sl}</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-slate-900/40 rounded-xl p-3 border border-slate-800/60 text-xs text-slate-400 italic text-center">
-                    Market consolidating. Setup does not meet deterministic threshold (&lt; 60 pts).
+                  <div className="bg-[#060A14]/50 rounded-2xl p-3 border border-white/[0.04] text-xs text-slate-400 text-center flex items-center justify-center space-x-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                    <span className="italic">Consolidation. Score &lt; 60 pts.</span>
                   </div>
                 )}
               </div>
@@ -1009,12 +1028,14 @@ export const Dashboard = ({
 
       {/* PHASE 6: INTERACTIVE TRADINGVIEW LIGHTWEIGHT CHARTS */}
       {(showMarkets || showWatchlist || isMaster) && (
-      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-5 card-shine">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
           <div className="flex items-center space-x-3">
-            <CandlestickChart className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <CandlestickChart className="w-5 h-5 text-blue-400" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+              <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
                 <span>Phase 6 Interactive TradingView Lightweight Chart:</span>
                 <span className="text-blue-400 font-mono">{selectedPair.pair} ({selectedTimeframe})</span>
               </h3>
@@ -1025,10 +1046,10 @@ export const Dashboard = ({
           </div>
 
           <div className="flex items-center space-x-3 text-xs font-mono">
-            <span className="text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+            <span className="text-slate-400 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-white/[0.08]">
               Bars: <b className="text-white">{candlesData.length} Loaded</b>
             </span>
-            <span className="text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+            <span className="text-slate-400 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-white/[0.08]">
               Feed: <b className="text-blue-400">{feedSource}</b>
             </span>
           </div>
@@ -1067,12 +1088,14 @@ export const Dashboard = ({
 
       {/* PHASE 5: RISK MANAGEMENT & POSITION SIZING CALCULATOR */}
       {(showSignals || showWatchlist || isMaster) && (
-      <div className="rounded-2xl bg-[#0E1320] border border-blue-500/40 p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-6 card-shine">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
           <div className="flex items-center space-x-3">
-            <Calculator className="w-5 h-5 text-emerald-400" />
+            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <Calculator className="w-5 h-5 text-emerald-400" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+              <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
                 <span>Phase 5 Risk Management Calculator:</span>
                 <span className="text-emerald-400 font-mono">{activeSignalDetails?.pair}</span>
               </h3>
@@ -1082,7 +1105,7 @@ export const Dashboard = ({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-white/[0.08]">
             <span>Pip Value:</span>
             <span className="text-white font-bold">${riskCalculations?.pipValuePerLot || 10.0}/lot</span>
           </div>
@@ -1286,12 +1309,14 @@ export const Dashboard = ({
       {/* PHASE 4: DETERMINISTIC 100-POINT SCORING BREAKDOWN & REASONS */}
       {showSignals && (
         <>
-          <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-6 card-shine">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
           <div className="flex items-center space-x-3">
-            <Award className="w-5 h-5 text-amber-400" />
+            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Award className="w-5 h-5 text-amber-400" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+              <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
                 <span>Phase 4 Deterministic Signal Engine:</span>
                 <span className="text-blue-400 font-mono">{selectedPair.pair} ({selectedTimeframe})</span>
               </h3>
@@ -1302,16 +1327,16 @@ export const Dashboard = ({
           </div>
 
           <div className="flex items-center space-x-3">
-            <span className={`px-3 py-1 rounded-xl text-xs font-mono font-bold uppercase border ${
+            <span className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black uppercase border shadow-sm ${
               isBuy
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10'
                 : isSell
-                ? 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-rose-500/10'
                 : 'bg-slate-800 text-slate-400 border-slate-700'
             }`}>
               {activeSignalDetails?.signal?.replace('_', ' ')}: {activeSignalDetails?.score}/100
             </span>
-            <span className="text-xs font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+            <span className="text-xs font-mono font-bold text-slate-400 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-white/[0.08]">
               Confidence: {activeSignalDetails?.confidence}
             </span>
           </div>
@@ -1319,63 +1344,63 @@ export const Dashboard = ({
 
         {/* 100-Point Rule Breakdown Meter */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-300">
             <span>Factor Score Distribution</span>
-            <span className="font-mono text-amber-400 font-bold">{activeSignalDetails?.score} / 100 Points</span>
+            <span className="font-mono text-amber-400 font-black">{activeSignalDetails?.score} / 100 Points</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {/* EMA Trend */}
-            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono">
-              <span className="text-slate-400 text-[11px] block">EMA Trend (25)</span>
-              <div className="text-lg font-bold text-white">{breakdown.emaTrend || 0}<span className="text-xs text-slate-500">/25</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-blue-500 h-full rounded-full" style={{ width: `${((breakdown.emaTrend || 0) / 25) * 100}%` }}></div>
+            <div className="bg-[#060A14]/70 p-3.5 rounded-2xl border border-white/[0.06] space-y-2 font-mono card-shine">
+              <span className="text-slate-400 text-[11px] block font-semibold">EMA Trend (25)</span>
+              <div className="text-lg font-black text-white">{breakdown.emaTrend || 0}<span className="text-xs text-slate-500 font-normal">/25</span></div>
+              <div className="w-full bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full shadow-sm shadow-blue-500/50" style={{ width: `${((breakdown.emaTrend || 0) / 25) * 100}%` }}></div>
               </div>
             </div>
 
             {/* MACD */}
-            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono">
-              <span className="text-slate-400 text-[11px] block">MACD (20)</span>
-              <div className="text-lg font-bold text-white">{breakdown.macd || 0}<span className="text-xs text-slate-500">/20</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-cyan-500 h-full rounded-full" style={{ width: `${((breakdown.macd || 0) / 20) * 100}%` }}></div>
+            <div className="bg-[#060A14]/70 p-3.5 rounded-2xl border border-white/[0.06] space-y-2 font-mono card-shine">
+              <span className="text-slate-400 text-[11px] block font-semibold">MACD (20)</span>
+              <div className="text-lg font-black text-white">{breakdown.macd || 0}<span className="text-xs text-slate-500 font-normal">/20</span></div>
+              <div className="w-full bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full shadow-sm shadow-cyan-500/50" style={{ width: `${((breakdown.macd || 0) / 20) * 100}%` }}></div>
               </div>
             </div>
 
             {/* RSI */}
-            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono">
-              <span className="text-slate-400 text-[11px] block">RSI (15)</span>
-              <div className="text-lg font-bold text-white">{breakdown.rsi || 0}<span className="text-xs text-slate-500">/15</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${((breakdown.rsi || 0) / 15) * 100}%` }}></div>
+            <div className="bg-[#060A14]/70 p-3.5 rounded-2xl border border-white/[0.06] space-y-2 font-mono card-shine">
+              <span className="text-slate-400 text-[11px] block font-semibold">RSI (15)</span>
+              <div className="text-lg font-black text-white">{breakdown.rsi || 0}<span className="text-xs text-slate-500 font-normal">/15</span></div>
+              <div className="w-full bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full shadow-sm shadow-emerald-500/50" style={{ width: `${((breakdown.rsi || 0) / 15) * 100}%` }}></div>
               </div>
             </div>
 
             {/* Market Structure */}
-            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono">
-              <span className="text-slate-400 text-[11px] block">Structure (15)</span>
-              <div className="text-lg font-bold text-white">{breakdown.marketStructure || 0}<span className="text-xs text-slate-500">/15</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-teal-500 h-full rounded-full" style={{ width: `${((breakdown.marketStructure || 0) / 15) * 100}%` }}></div>
+            <div className="bg-[#060A14]/70 p-3.5 rounded-2xl border border-white/[0.06] space-y-2 font-mono card-shine">
+              <span className="text-slate-400 text-[11px] block font-semibold">Structure (15)</span>
+              <div className="text-lg font-black text-white">{breakdown.marketStructure || 0}<span className="text-xs text-slate-500 font-normal">/15</span></div>
+              <div className="w-full bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="bg-gradient-to-r from-teal-500 to-cyan-500 h-full rounded-full shadow-sm shadow-teal-500/50" style={{ width: `${((breakdown.marketStructure || 0) / 15) * 100}%` }}></div>
               </div>
             </div>
 
             {/* Support / Resistance */}
-            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono">
-              <span className="text-slate-400 text-[11px] block">S / R (15)</span>
-              <div className="text-lg font-bold text-white">{breakdown.supportResistance || 0}<span className="text-xs text-slate-500">/15</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${((breakdown.supportResistance || 0) / 15) * 100}%` }}></div>
+            <div className="bg-[#060A14]/70 p-3.5 rounded-2xl border border-white/[0.06] space-y-2 font-mono card-shine">
+              <span className="text-slate-400 text-[11px] block font-semibold">S / R (15)</span>
+              <div className="text-lg font-black text-white">{breakdown.supportResistance || 0}<span className="text-xs text-slate-500 font-normal">/15</span></div>
+              <div className="w-full bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full shadow-sm shadow-indigo-500/50" style={{ width: `${((breakdown.supportResistance || 0) / 15) * 100}%` }}></div>
               </div>
             </div>
 
             {/* Volatility */}
-            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono">
-              <span className="text-slate-400 text-[11px] block">Volatility (10)</span>
-              <div className="text-lg font-bold text-white">{breakdown.volatility || 0}<span className="text-xs text-slate-500">/10</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full" style={{ width: `${((breakdown.volatility || 0) / 10) * 100}%` }}></div>
+            <div className="bg-[#060A14]/70 p-3.5 rounded-2xl border border-white/[0.06] space-y-2 font-mono card-shine">
+              <span className="text-slate-400 text-[11px] block font-semibold">Volatility (10)</span>
+              <div className="text-lg font-black text-white">{breakdown.volatility || 0}<span className="text-xs text-slate-500 font-normal">/10</span></div>
+              <div className="w-full bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full shadow-sm shadow-amber-500/50" style={{ width: `${((breakdown.volatility || 0) / 10) * 100}%` }}></div>
               </div>
             </div>
           </div>
@@ -1429,12 +1454,14 @@ export const Dashboard = ({
       </div>
 
       {/* PHASE 3 INDICATOR CONSOLE (EMA, RSI, MACD, ATR, S/R) */}
-      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-6 card-shine">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
           <div className="flex items-center space-x-3">
-            <Sliders className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <Sliders className="w-5 h-5 text-blue-400" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+              <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
                 <span>Phase 3 Quantitative Indicator Stack:</span>
                 <span className="text-blue-400 font-mono">{selectedPair.pair} ({selectedTimeframe})</span>
               </h3>
@@ -1445,7 +1472,7 @@ export const Dashboard = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900 border border-slate-800 text-slate-300">
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-950/80 border border-white/[0.08] text-slate-300 shadow-sm">
               Bias: <span className={analysisData?.overallBias === 'BULLISH' ? 'text-emerald-400' : analysisData?.overallBias === 'BEARISH' ? 'text-rose-400' : 'text-amber-400'}>{analysisData?.overallBias || '...'}</span>
             </span>
           </div>
@@ -1597,12 +1624,14 @@ export const Dashboard = ({
 
       {/* Candlestick Feed Table */}
       {showMarkets && (
-      <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="glass-panel rounded-3xl border border-white/[0.08] p-6 space-y-4 shadow-2xl card-shine">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div className="flex items-center space-x-3">
-            <CandlestickChart className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <CandlestickChart className="w-5 h-5 text-blue-400" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-black text-white">
                 Historical Candlestick Feed: {selectedPair.pair} ({selectedTimeframe})
               </h3>
               <p className="text-xs text-slate-400">
@@ -1610,38 +1639,38 @@ export const Dashboard = ({
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          <span className="text-xs font-mono font-bold px-3 py-1 rounded-xl bg-black/40 border border-white/[0.08] text-slate-300">
             {candlesData.length} Recent Bars
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
+          <table className="w-full text-left text-xs font-mono tabular-nums">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400">
-                <th className="py-2 px-3">Timestamp (UTC)</th>
-                <th className="py-2 px-3">Open</th>
-                <th className="py-2 px-3">High</th>
-                <th className="py-2 px-3">Low</th>
-                <th className="py-2 px-3">Close</th>
-                <th className="py-2 px-3 text-right">Volume</th>
+              <tr className="border-b border-white/[0.06] text-slate-400">
+                <th className="py-2.5 px-3">Timestamp (UTC)</th>
+                <th className="py-2.5 px-3">Open</th>
+                <th className="py-2.5 px-3">High</th>
+                <th className="py-2.5 px-3">Low</th>
+                <th className="py-2.5 px-3">Close</th>
+                <th className="py-2.5 px-3 text-right">Volume</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-white/[0.04]">
               {candlesData.slice(-8).reverse().map((c, i) => {
                 const isBull = c.close >= c.open;
                 return (
-                  <tr key={i} className="hover:bg-slate-900/40 transition">
-                    <td className="py-2 px-3 text-slate-400">
+                  <tr key={i} className="hover:bg-white/[0.04] transition">
+                    <td className="py-2.5 px-3 text-slate-400">
                       {new Date(c.timestamp).toLocaleString()}
                     </td>
-                    <td className="py-2 px-3 text-slate-300">{c.open}</td>
-                    <td className="py-2 px-3 text-emerald-400">{c.high}</td>
-                    <td className="py-2 px-3 text-rose-400">{c.low}</td>
-                    <td className={`py-2 px-3 font-bold ${isBull ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <td className="py-2.5 px-3 text-slate-300">{c.open}</td>
+                    <td className="py-2.5 px-3 text-emerald-400 font-semibold">{c.high}</td>
+                    <td className="py-2.5 px-3 text-rose-400 font-semibold">{c.low}</td>
+                    <td className={`py-2.5 px-3 font-bold ${isBull ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {c.close}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-400">{c.volume}</td>
+                    <td className="py-2.5 px-3 text-right text-slate-400">{c.volume}</td>
                   </tr>
                 );
               })}
@@ -1667,11 +1696,13 @@ export const Dashboard = ({
           <ProductionDeploymentConsole />
 
           {/* Master 11-Phase Architecture Roadmap */}
-          <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
-            <div className="flex items-center space-x-3">
-              <Layers className="w-5 h-5 text-blue-400" />
+          <div className="glass-panel rounded-3xl border border-white/[0.08] p-6 space-y-4 shadow-2xl card-shine">
+            <div className="flex items-center space-x-3 border-b border-white/[0.06] pb-3">
+              <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <Layers className="w-5 h-5 text-blue-400" />
+              </div>
               <div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-black text-white">
                   ForexAI Analyzer Architecture Roadmap
                 </h3>
                 <p className="text-xs text-slate-400">
@@ -1680,16 +1711,16 @@ export const Dashboard = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {roadmapPhases.map((phase) => {
                 const isDone = phase.status === 'completed';
                 return (
                   <div
                     key={phase.phase}
-                    className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition ${
+                    className={`p-4 rounded-2xl border text-xs space-y-1.5 transition card-shine ${
                       isDone
                         ? 'bg-blue-950/20 border-blue-500/40 text-slate-200'
-                        : 'bg-slate-900/40 border-slate-800/80 text-slate-400'
+                        : 'bg-black/30 border-white/[0.06] text-slate-400'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -1701,7 +1732,7 @@ export const Dashboard = ({
                         {phase.phase}
                       </span>
                       {isDone ? (
-                        <span className="flex items-center space-x-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        <span className="flex items-center space-x-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>Ready</span>
                         </span>
@@ -1711,7 +1742,7 @@ export const Dashboard = ({
                         </span>
                       )}
                     </div>
-                    <div className="font-semibold text-white text-xs">{phase.title}</div>
+                    <div className="font-bold text-white text-xs">{phase.title}</div>
                     <div className="text-[11px] text-slate-400 leading-relaxed">{phase.desc}</div>
                   </div>
                 );

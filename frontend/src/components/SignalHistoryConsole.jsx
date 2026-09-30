@@ -113,98 +113,111 @@ export const SignalHistoryConsole = () => {
   return (
     <div className="space-y-6">
       {/* Workspace Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-blue-950/40 border border-slate-800/80 shadow-xl">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-inner">
-            <History className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-xl font-bold text-slate-100 tracking-tight">Signal History & Verification</h2>
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                SECTION 15
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Auditable lifecycle records for closed trade setups, deterministic scoring, and verified outcome pips.
-            </p>
-          </div>
-        </div>
+      <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl relative overflow-hidden card-shine">
+        {/* Ambient Corner Radial Accent */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <button
-          onClick={loadHistory}
-          disabled={loading}
-          className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 text-xs font-medium transition-all self-start sm:self-auto cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-400' : ''}`} />
-          <span>Refresh Records</span>
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm shadow-blue-500/10">
+              <History className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h2 className="text-xl font-black text-white tracking-tight">Signal History & Verification</h2>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                  AUDITED LOGS
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Auditable lifecycle records for closed trade setups, deterministic scoring, and verified outcome pips.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={loadHistory}
+            disabled={loading}
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-slate-200 hover:text-white border border-white/[0.08] text-xs font-mono font-bold transition-all self-start sm:self-auto cursor-pointer shadow-sm active:scale-95"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-400' : ''}`} />
+            <span>Refresh Records</span>
+          </button>
+        </div>
       </div>
 
       {/* Historical Performance KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+        <div className="glass-card p-4.5 rounded-2xl border border-white/[0.08] card-shine hover:border-white/20 transition-all">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 font-semibold">
             <span>Closed Signals</span>
-            <History className="w-4 h-4 text-blue-400" />
+            <div className="p-1 rounded-lg bg-blue-500/15 text-blue-400">
+              <History className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-100">{metrics.totalSignals}</div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-2xl font-black font-mono text-white tabular-nums">{metrics.totalSignals}</div>
+          <div className="text-[11px] text-slate-400 mt-1 font-mono">
             {metrics.winCount} Wins / {metrics.lossCount} Losses
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span>Win Rate</span>
-            <Award className="w-4 h-4 text-emerald-400" />
+        <div className="glass-card p-4.5 rounded-2xl border border-white/[0.08] card-shine hover:border-white/20 transition-all">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 font-semibold">
+            <span>Verified Win Rate</span>
+            <div className="p-1 rounded-lg bg-emerald-500/15 text-emerald-400">
+              <Award className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-emerald-400">{metrics.winRate}%</div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-2xl font-black font-mono text-emerald-400 tabular-nums">{metrics.winRate}%</div>
+          <div className="text-[11px] text-slate-400 mt-1 font-mono">
             TP1, TP2, or TP3 secured
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span>Net Pips</span>
-            <Zap className="w-4 h-4 text-cyan-400" />
+        <div className="glass-card p-4.5 rounded-2xl border border-white/[0.08] card-shine hover:border-white/20 transition-all">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 font-semibold">
+            <span>Net Delta</span>
+            <div className="p-1 rounded-lg bg-cyan-500/15 text-cyan-400">
+              <Zap className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className={`text-2xl font-bold font-mono ${metrics.totalPips >= 0 ? 'text-cyan-400' : 'text-rose-400'}`}>
-            {metrics.totalPips >= 0 ? `+${metrics.totalPips}` : metrics.totalPips}
+          <div className={`text-2xl font-black font-mono tabular-nums ${metrics.totalPips >= 0 ? 'text-cyan-400' : 'text-rose-400'}`}>
+            {metrics.totalPips >= 0 ? `+${metrics.totalPips}` : metrics.totalPips} pips
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
-            Total pip delta
+          <div className="text-[11px] text-slate-400 mt-1 font-mono">
+            Cumulative target pips
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+        <div className="glass-card p-4.5 rounded-2xl border border-white/[0.08] card-shine hover:border-white/20 transition-all">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 font-semibold">
             <span>Average R:R</span>
-            <TrendingUp className="w-4 h-4 text-indigo-400" />
+            <div className="p-1 rounded-lg bg-indigo-500/15 text-indigo-400">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-indigo-300">{metrics.avgRiskReward}</div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-2xl font-black font-mono text-indigo-300 tabular-nums">{metrics.avgRiskReward}</div>
+          <div className="text-[11px] text-slate-400 mt-1 font-mono">
             Reward-to-risk ratio
           </div>
         </div>
       </div>
 
-      {/* Filters Toolbar (Section 15: Pair, BUY/SELL, Timeframe, Date, Result) */}
-      <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 space-y-3">
-        <div className="flex items-center space-x-2 text-xs font-semibold text-slate-300">
+      {/* Filters Toolbar */}
+      <div className="glass-panel p-4.5 rounded-2xl border border-white/[0.08] space-y-3.5 card-shine">
+        <div className="flex items-center space-x-2 text-xs font-bold text-slate-300">
           <Filter className="w-3.5 h-3.5 text-blue-400" />
-          <span>FILTER HISTORICAL SIGNALS</span>
+          <span className="tracking-wider uppercase text-[11px]">Filter Historical Signals</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
           {/* Pair Filter */}
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Currency Pair</label>
+            <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Currency Pair</label>
             <select
               value={selectedPair}
               onChange={(e) => setSelectedPair(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
             >
               {PAIRS.map((p) => (
                 <option key={p} value={p}>{p === 'ALL' ? 'All Pairs' : p}</option>
@@ -214,11 +227,11 @@ export const SignalHistoryConsole = () => {
 
           {/* Direction Filter */}
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Direction</label>
+            <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Direction</label>
             <select
               value={selectedDirection}
               onChange={(e) => setSelectedDirection(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
             >
               <option value="ALL">All Directions</option>
               <option value="BUY">BUY Only</option>
@@ -228,11 +241,11 @@ export const SignalHistoryConsole = () => {
 
           {/* Timeframe Filter */}
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Timeframe</label>
+            <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Timeframe</label>
             <select
               value={selectedTimeframe}
               onChange={(e) => setSelectedTimeframe(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
             >
               {TIMEFRAMES.map((tf) => (
                 <option key={tf} value={tf}>{tf === 'ALL' ? 'All Timeframes' : tf.toUpperCase()}</option>
@@ -242,11 +255,11 @@ export const SignalHistoryConsole = () => {
 
           {/* Result Filter */}
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Outcome Result</label>
+            <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Outcome Result</label>
             <select
               value={selectedResult}
               onChange={(e) => setSelectedResult(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
             >
               <option value="ALL">All Outcomes</option>
               <option value="TP1_HIT">TP1 Hit</option>
@@ -258,26 +271,26 @@ export const SignalHistoryConsole = () => {
 
           {/* Search Input */}
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Search Keywords</label>
+            <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Search Keywords</label>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Signal History Table (Section 15) */}
-      <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-hidden shadow-xl">
+      {/* Main Signal History Table */}
+      <div className="glass-panel rounded-3xl border border-white/[0.08] overflow-hidden shadow-2xl card-shine">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase tracking-wider font-mono border-b border-slate-800/80 text-[11px]">
+          <table className="w-full text-left text-xs tabular-nums">
+            <thead className="bg-black/40 text-slate-400 uppercase tracking-wider font-mono border-b border-white/[0.08] text-[11px]">
               <tr>
                 <th className="py-3 px-4">Pair & TF</th>
                 <th className="py-3 px-4">Direction</th>

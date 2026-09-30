@@ -92,19 +92,22 @@ export const ProductionDeploymentConsole = () => {
   ];
 
   return (
-    <div className="rounded-2xl bg-[#0E1320] border border-blue-500/40 p-6 space-y-6 shadow-xl">
+    <div className="glass-panel rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-6 relative overflow-hidden card-shine">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-blue-600/15 border border-blue-500/30 text-blue-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5 relative z-10">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-3 rounded-2xl bg-blue-600/15 border border-blue-500/30 text-blue-400 shadow-sm shadow-blue-500/10">
             <Boxes className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                 Phase 11 Complete
               </span>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-lg font-black text-white tracking-tight">
                 Production Deployment & Docker Orchestration
               </h3>
             </div>
@@ -114,12 +117,12 @@ export const ProductionDeploymentConsole = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs font-mono">
-          <span className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center space-x-1.5">
+        <div className="flex items-center space-x-2.5 text-xs font-mono">
+          <span className="px-3 py-1.5 rounded-xl bg-black/40 border border-white/[0.08] text-slate-300 flex items-center space-x-1.5 font-bold">
             <GitBranch className="w-3.5 h-3.5 text-blue-400" />
             <span>CI: Passing</span>
           </span>
-          <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center space-x-1.5">
+          <span className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center space-x-1.5 font-bold">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Hardened</span>
           </span>
@@ -127,25 +130,25 @@ export const ProductionDeploymentConsole = () => {
       </div>
 
       {/* 3-Container Topology Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative z-10">
         {containerServices.map((c) => {
           const Icon = c.icon;
           return (
             <div
               key={c.service}
-              className="bg-slate-900/60 rounded-xl p-4 border border-slate-800 space-y-3 relative overflow-hidden"
+              className="glass-card rounded-2xl p-5 border border-white/[0.08] space-y-3.5 relative overflow-hidden card-shine hover:border-white/20 transition-all"
             >
               <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-                    <Icon className="w-4 h-4" />
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-white/[0.06] text-slate-300 border border-white/[0.08]">
+                    <Icon className="w-4 h-4 text-blue-400" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-white">{c.name}</h4>
-                    <span className="text-[10px] font-mono text-slate-400">service: {c.service}</span>
+                    <h4 className="text-xs font-black text-white">{c.name}</h4>
+                    <span className="text-[10px] font-mono text-slate-400 font-semibold">service: {c.service}</span>
                   </div>
                 </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${c.tagColor}`}>
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${c.tagColor}`}>
                   Active
                 </span>
               </div>
@@ -154,18 +157,18 @@ export const ProductionDeploymentConsole = () => {
                 {c.role}
               </div>
 
-              <div className="pt-2 border-t border-slate-800/80 space-y-1 text-[11px] font-mono">
+              <div className="pt-2.5 border-t border-white/[0.06] space-y-1.5 text-[11px] font-mono">
                 <div className="flex justify-between text-slate-400">
                   <span>Port Binding:</span>
-                  <span className="text-slate-200">{c.port}</span>
+                  <span className="text-white font-bold">{c.port}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span>Configuration:</span>
-                  <span className="text-slate-200 truncate max-w-[150px]">{c.volume}</span>
+                  <span className="text-slate-300 truncate max-w-[150px]">{c.volume}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span>Health Probe:</span>
-                  <span className="text-emerald-400 text-[10px] truncate max-w-[140px]">{c.health}</span>
+                  <span className="text-emerald-400 text-[10px] truncate max-w-[140px] font-bold">{c.health}</span>
                 </div>
               </div>
             </div>
@@ -174,33 +177,33 @@ export const ProductionDeploymentConsole = () => {
       </div>
 
       {/* Deployment CLI Cheat Sheet & Security Hardening Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
         {/* Left: Quick Terminal Commands (7 cols) */}
-        <div className="lg:col-span-7 space-y-3">
+        <div className="lg:col-span-7 space-y-3.5">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-2">
               <Terminal className="w-4 h-4 text-blue-400" />
               <span>Production Terminal Quickstart</span>
             </h4>
-            <span className="text-[10px] text-slate-500 font-mono">Run from project root</span>
+            <span className="text-[10px] text-slate-400 font-mono">Run from project root</span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {deploymentCommands.map((cmd, idx) => (
               <div
                 key={cmd.title}
-                className="bg-slate-950/80 rounded-xl p-3 border border-slate-800/90 space-y-1.5"
+                className="bg-[#060A14]/70 rounded-2xl p-3.5 border border-white/[0.08] space-y-2 card-shine"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-300">{cmd.title}</span>
+                  <span className="text-xs font-bold text-slate-200">{cmd.title}</span>
                   <button
                     onClick={() => handleCopy(cmd.command, idx)}
-                    className="flex items-center space-x-1 text-[11px] font-mono text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 transition"
+                    className="flex items-center space-x-1.5 text-[11px] font-mono text-slate-300 hover:text-white px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] transition cursor-pointer"
                   >
                     {copiedIndex === idx ? (
                       <>
                         <Check className="w-3 h-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied</span>
+                        <span className="text-emerald-400 font-bold">Copied</span>
                       </>
                     ) : (
                       <>
@@ -210,31 +213,31 @@ export const ProductionDeploymentConsole = () => {
                     )}
                   </button>
                 </div>
-                <div className="font-mono text-xs text-blue-400 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/60 overflow-x-auto">
+                <div className="font-mono text-xs text-blue-300 bg-[#04070F] px-3 py-2 rounded-xl border border-white/[0.06] overflow-x-auto">
                   $ {cmd.command}
                 </div>
-                <p className="text-[10px] text-slate-500">{cmd.desc}</p>
+                <p className="text-[10px] text-slate-400 font-sans leading-relaxed">{cmd.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Right: Security & Architecture Audit (5 cols) */}
-        <div className="lg:col-span-5 space-y-3">
+        <div className="lg:col-span-5 space-y-3.5">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Production Security Controls</span>
             </h4>
-            <span className="text-[10px] text-emerald-400 font-mono">6/6 Enforced</span>
+            <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/25">6/6 Enforced</span>
           </div>
 
-          <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 space-y-3">
+          <div className="bg-[#060A14]/70 rounded-2xl p-5 border border-white/[0.08] space-y-3.5 card-shine">
             {securityChecklist.map((item) => (
-              <div key={item.label} className="flex items-start space-x-2.5">
+              <div key={item.label} className="flex items-start space-x-3">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <div className="text-xs font-semibold text-slate-200">{item.label}</div>
+                  <div className="text-xs font-bold text-slate-200">{item.label}</div>
                   <div className="text-[11px] text-slate-400 leading-snug">{item.detail}</div>
                 </div>
               </div>
@@ -242,7 +245,7 @@ export const ProductionDeploymentConsole = () => {
           </div>
 
           {/* Regulatory Disclaimer Box */}
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-300 space-y-1">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-3.5 text-xs text-amber-300 space-y-1">
             <div className="font-bold flex items-center space-x-1.5">
               <span>Docker Production Notice</span>
             </div>

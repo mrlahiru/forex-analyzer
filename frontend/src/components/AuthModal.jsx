@@ -76,36 +76,39 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md rounded-2xl bg-[#0B0F19] border border-slate-800 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      {/* Background ambient radial glow */}
+      <div className="absolute w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-md rounded-3xl bg-[#090E1A]/95 border border-white/[0.12] shadow-2xl overflow-hidden card-shine">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-800/80 bg-slate-900/60">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-              <ShieldCheck className="w-4 h-4" />
+        <div className="flex items-center justify-between p-6 border-b border-white/[0.08] bg-black/30">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm shadow-blue-500/10">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-100">ForexAI Access Control</h3>
-              <p className="text-[11px] text-slate-400">JWT Authenticated Trader Terminal</p>
+              <h3 className="text-base font-black text-white tracking-tight">ForexAI Access Control</h3>
+              <p className="text-xs text-slate-400">JWT Authenticated Institutional Terminal</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="grid grid-cols-2 p-1.5 bg-slate-950/60 border-b border-slate-800 text-xs">
+        <div className="grid grid-cols-2 p-1.5 bg-black/40 border-b border-white/[0.06] text-xs font-mono">
           <button
             type="button"
             onClick={() => { setTab('login'); setError(''); }}
-            className={`py-2 rounded-lg font-medium transition-all ${
+            className={`py-2.5 rounded-xl font-bold transition-all cursor-pointer ${
               tab === 'login'
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             Sign In
@@ -113,10 +116,10 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           <button
             type="button"
             onClick={() => { setTab('register'); setError(''); }}
-            className={`py-2 rounded-lg font-medium transition-all ${
+            className={`py-2.5 rounded-xl font-bold transition-all cursor-pointer ${
               tab === 'register'
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             Register Account
@@ -126,62 +129,62 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
         {/* Content & Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="flex items-center space-x-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="flex items-center space-x-2.5 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-center space-x-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="flex items-center space-x-2.5 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
               <span>{successMsg}</span>
             </div>
           )}
 
           {tab === 'register' && (
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
               <div className="relative">
-                <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   required
                   placeholder="e.g. Alex Morgan"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                  className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="email"
                 required
                 placeholder="name@institution.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="password"
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                className="w-full bg-[#060A14] border border-white/[0.08] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono"
               />
             </div>
           </div>
@@ -189,19 +192,19 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold font-mono shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 active:scale-95"
           >
             {tab === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-            <span>{loading ? 'Processing...' : tab === 'login' ? 'Sign In' : 'Create Account'}</span>
+            <span>{loading ? 'Processing...' : tab === 'login' ? 'Sign In to Terminal' : 'Create Account'}</span>
           </button>
 
           {/* Quick Demo Trader Login */}
-          <div className="pt-2 border-t border-slate-800/80">
+          <div className="pt-2 border-t border-white/[0.06]">
             <button
               type="button"
               onClick={handleDemoLogin}
               disabled={loading}
-              className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 text-xs font-medium flex items-center justify-center space-x-2 transition-all cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-cyan-300 text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 text-cyan-400" />
               <span>One-Click Demo Trader Login</span>

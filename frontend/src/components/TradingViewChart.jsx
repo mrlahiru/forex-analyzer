@@ -327,25 +327,25 @@ export const TradingViewChart = ({
 
   return (
     <div
-      className={`relative rounded-2xl bg-[#080B11] border border-slate-800/90 overflow-hidden flex flex-col ${
-        isFullscreen ? 'fixed inset-0 z-50 p-4 bg-[#080B11]' : ''
+      className={`relative rounded-3xl bg-[#060911] border border-white/[0.08] shadow-2xl overflow-hidden flex flex-col card-shine ${
+        isFullscreen ? 'fixed inset-0 z-50 p-4 bg-[#060911]' : ''
       }`}
     >
       {/* Top Chart Header Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-3 border-b border-slate-800/80 bg-[#0B0F19] gap-3">
+      <div className="flex flex-wrap items-center justify-between px-5 py-3.5 border-b border-white/[0.08] bg-[#070B14]/95 gap-3">
         {/* Pair & Timeframe Badge */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3.5">
           <div className="flex items-center space-x-2">
-            <span className="text-base font-extrabold font-mono tracking-tight text-white">
+            <span className="text-lg font-black font-mono tracking-tight text-white">
               {pair}
             </span>
-            <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
               {timeframe}
             </span>
           </div>
 
           {/* Real-time OHLCV Bar Readout */}
-          <div className="hidden md:flex items-center space-x-3 text-xs font-mono text-slate-400 pl-3 border-l border-slate-800">
+          <div className="hidden md:flex items-center space-x-3 text-xs font-mono text-slate-400 pl-3.5 border-l border-white/[0.08] tabular-nums">
             <span>O: <b className="text-slate-200">{display.open?.toFixed(priceDecimals) || '—'}</b></span>
             <span>H: <b className="text-emerald-400">{display.high?.toFixed(priceDecimals) || '—'}</b></span>
             <span>L: <b className="text-rose-400">{display.low?.toFixed(priceDecimals) || '—'}</b></span>
@@ -359,10 +359,10 @@ export const TradingViewChart = ({
           {/* EMA 20 Toggle */}
           <button
             onClick={() => setShowEMA20(!showEMA20)}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium border transition ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition cursor-pointer ${
               showEMA20
-                ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
-                : 'bg-slate-900 text-slate-500 border-slate-800'
+                ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+                : 'bg-black/40 text-slate-500 border-white/[0.06] hover:text-slate-300'
             }`}
             title="Toggle 20-period Exponential Moving Average"
           >
@@ -373,10 +373,10 @@ export const TradingViewChart = ({
           {/* EMA 50 Toggle */}
           <button
             onClick={() => setShowEMA50(!showEMA50)}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium border transition ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition cursor-pointer ${
               showEMA50
-                ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-                : 'bg-slate-900 text-slate-500 border-slate-800'
+                ? 'bg-blue-500/15 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-500/10'
+                : 'bg-black/40 text-slate-500 border-white/[0.06] hover:text-slate-300'
             }`}
             title="Toggle 50-period Exponential Moving Average"
           >
@@ -387,10 +387,10 @@ export const TradingViewChart = ({
           {/* EMA 200 Toggle */}
           <button
             onClick={() => setShowEMA200(!showEMA200)}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium border transition ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition cursor-pointer ${
               showEMA200
-                ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
-                : 'bg-slate-900 text-slate-500 border-slate-800'
+                ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/10'
+                : 'bg-black/40 text-slate-500 border-white/[0.06] hover:text-slate-300'
             }`}
             title="Toggle 200-period Exponential Moving Average"
           >
@@ -401,10 +401,10 @@ export const TradingViewChart = ({
           {/* TP/SL Levels Overlay Toggle */}
           <button
             onClick={() => setShowLevels(!showLevels)}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium border transition ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition cursor-pointer ${
               showLevels
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-slate-900 text-slate-500 border-slate-800'
+                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+                : 'bg-black/40 text-slate-500 border-white/[0.06] hover:text-slate-300'
             }`}
             title="Toggle Entry, TP1, TP2, TP3 & Stop Loss horizontal rays"
           >
@@ -415,7 +415,7 @@ export const TradingViewChart = ({
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
+            className="p-2 rounded-xl bg-white/[0.06] border border-white/[0.08] text-slate-400 hover:text-white transition cursor-pointer"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Chart'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -430,7 +430,7 @@ export const TradingViewChart = ({
       />
 
       {/* Bottom Chart Footer Legend */}
-      <div className="px-4 py-2 border-t border-slate-800/80 bg-[#0B0F19]/80 flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-400 gap-2">
+      <div className="px-5 py-2.5 border-t border-white/[0.06] bg-[#070B14]/95 flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-400 gap-2">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1.5">
             <span className="w-3 h-0.5 bg-blue-500"></span>
