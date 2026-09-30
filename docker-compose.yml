@@ -1,48 +1,80 @@
 version: '3.8'
 
 services:
+  # -------------------------------------------------------------
+  # 1. MongoDB Database Engine
+  # -------------------------------------------------------------
   mongodb:
     image: mongo:7.0
     container_name: forex-ai-mongodb
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: forex-ai-analyzer
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - forex-network
 
+  # -------------------------------------------------------------
+  # 2. Node.js Express Backend API Engine
+  # -------------------------------------------------------------
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: forex-ai-backend
-    restart: always
+    restart: unless-stopped
     ports:
       - "5001:5001"
     environment:
       PORT: 5001
-      NODE_ENV: development
+      NODE_ENV: production
       MONGODB_URI: mongodb://mongodb:27017/forex-ai-analyzer
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TWELVE_DATA_API_KEY: ${TWELVE_DATA_API_KEY:-}
+      OANDA_API_KEY: ${OANDA_API_KEY:-}
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      POLYGON_API_KEY: ${POLYGON_API_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:-forex_analyzer_jwt_super_secret_production_key_2026}
     depends_on:
-      - mongodb
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      mongodb:
+        condition: service_healthy
+    networks:
+      - forex-network
 
+  # -------------------------------------------------------------
+  # 3. React Vite + Nginx Reverse Proxy Frontend
+  # -------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
     container_name: forex-ai-frontend
-    restart: always
+    restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "80:80"
+      - "5173:80"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    networks:
+      - forex-network
 
 volumes:
   mongo_data:
+    driver: local
+
+networks:
+  forex-network:
+    driver: bridge

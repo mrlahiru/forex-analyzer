@@ -9,6 +9,7 @@ import {
   BellRing,
   Settings,
   ShieldAlert,
+  Boxes,
 } from 'lucide-react';
 
 const navItems = [
@@ -16,9 +17,9 @@ const navItems = [
   { id: 'markets', name: 'Markets', icon: TrendingUp, active: false, badge: 'Phase 2' },
   { id: 'signals', name: 'Signals', icon: Radio, active: false, badge: 'Phase 4' },
   { id: 'watchlist', name: 'Watchlist', icon: Star, active: false, badge: 'Phase 6' },
-  { id: 'history', name: 'Signal History', icon: History, active: false, badge: 'Phase 15' },
   { id: 'backtesting', name: 'Backtesting', icon: TestTube2, active: false, badge: 'Phase 10' },
   { id: 'alerts', name: 'Alerts', icon: BellRing, active: false, badge: 'Phase 9' },
+  { id: 'deployment', name: 'Deployment', icon: Boxes, active: false, badge: 'Phase 11' },
   { id: 'settings', name: 'Settings', icon: Settings, active: false },
 ];
 

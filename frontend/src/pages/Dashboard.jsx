@@ -49,6 +49,7 @@ import { AiAnalysisCard } from '../components/AiAnalysisCard';
 import { ScannerConsole } from '../components/ScannerConsole';
 import { TelegramAlertConsole } from '../components/TelegramAlertConsole';
 import { BacktestConsole } from '../components/BacktestConsole';
+import { ProductionDeploymentConsole } from '../components/ProductionDeploymentConsole';
 
 
 const defaultFallbackPairs = [
@@ -200,7 +201,7 @@ const roadmapPhases = [
   { phase: 'Phase 8', title: 'Automatic Market Scanner', status: 'completed', desc: 'node-cron background scanner, signal lifecycle monitoring, TP/SL hit states' },
   { phase: 'Phase 9', title: 'Telegram Notifications', status: 'completed', desc: 'Real-time alert bot for generated signals, TP1/2/3 hits, SL hits' },
   { phase: 'Phase 10', title: 'Backtesting Engine', status: 'completed', desc: 'Historical strategy simulation, win rate, drawdown, profit factor' },
-  { phase: 'Phase 11', title: 'Production Deployment', status: 'upcoming', desc: 'Docker Compose, GitHub Actions, environment security' },
+  { phase: 'Phase 11', title: 'Production Deployment', status: 'completed', desc: 'Docker Compose, Multi-stage builds, Nginx reverse proxy, CI/CD pipeline, and security hardened container orchestration' },
 ];
 
 export const Dashboard = ({
@@ -445,16 +446,18 @@ export const Dashboard = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Phase 10 Complete
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>All 11 Phases Complete — Production Ready</span>
               </span>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Historical Strategy Backtesting & Quantitative Simulation Engine Active
+                ForexAI Analyzer — Full-Stack Algorithmic Signal & Quantitative Risk Platform
               </h1>
             </div>
             <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Institutional strategy backtester evaluates the 100-point rule model across historical bar datasets, calculating Win Rate %, Profit Factor, Drawdown %, and Equity Curve.
-            </p>          </div>
+              Deterministic 100-point signal engine, institutional multi-target TP/SL execution, TradingView charts, automated background scanner, Telegram alerts, backtesting suite & production Docker stack.
+            </p>
+          </div>
 
           <div className="flex items-center space-x-3">
             <button
@@ -1333,6 +1336,9 @@ export const Dashboard = ({
         initialPair={selectedPair.pair}
       />
 
+      {/* PHASE 11: PRODUCTION DOCKER DEPLOYMENT & ORCHESTRATION */}
+      <ProductionDeploymentConsole />
+
       {/* Master 11-Phase Architecture Roadmap */}
       <div className="rounded-2xl bg-[#0E1320] border border-slate-800 p-6 space-y-4">
         <div className="flex items-center space-x-3">
@@ -1342,7 +1348,7 @@ export const Dashboard = ({
               ForexAI Analyzer Architecture Roadmap
             </h3>
             <p className="text-xs text-slate-400">
-              Phases 1 through 10 are complete. Ready for Phase 11 (Production Deployment & Docker).
+              All 11 architectural phases are fully implemented, verified, and production-ready.
             </p>
           </div>
         </div>

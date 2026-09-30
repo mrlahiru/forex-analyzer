@@ -1,0 +1,75 @@
+name: ForexAI Analyzer CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  backend-lint-and-validate:
+    name: Backend Lint & Node Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Validate Syntax & Entrypoints
+        working-directory: ./backend
+        run: |
+          node --check src/server.js
+          node --check src/app.js
+          node --check src/services/analysis/technicalAnalysisEngine.js
+          node --check src/services/scoring/deterministicScoringEngine.js
+          node --check src/services/risk/dynamicTPSLEngine.js
+          node --check src/services/signals/marketScanner.js
+          node --check src/services/notifications/telegramService.js
+          node --check src/services/backtesting/backtestEngine.js
+
+  frontend-build:
+    name: Frontend Build & Bundle Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Production Assets
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          VITE_API_URL: /api
+
+  docker-compose-check:
+    name: Docker Compose & Configuration Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose config
