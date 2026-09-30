@@ -29,6 +29,7 @@ import {
   LayoutDashboard,
   Radio,
   Star,
+  History,
   TestTube2,
   BellRing,
   Boxes,
@@ -59,6 +60,7 @@ import { BacktestConsole } from '../components/BacktestConsole';
 import { ProductionDeploymentConsole } from '../components/ProductionDeploymentConsole';
 import { WatchlistConsole } from '../components/WatchlistConsole';
 import { SettingsConsole } from '../components/SettingsConsole';
+import { SignalHistoryConsole } from '../components/SignalHistoryConsole';
 
 
 const defaultFallbackPairs = [
@@ -454,6 +456,7 @@ export const Dashboard = ({
   const showMarkets = isMaster || activeTab === 'markets';
   const showSignals = isMaster || activeTab === 'signals';
   const showWatchlist = activeTab === 'watchlist';
+  const showHistory = activeTab === 'history';
   const showBacktesting = isMaster || activeTab === 'backtesting';
   const showAlerts = isMaster || activeTab === 'alerts';
   const showDeployment = isMaster || activeTab === 'deployment';
@@ -537,6 +540,7 @@ export const Dashboard = ({
             { id: 'markets', label: 'Markets & Chart', icon: TrendingUp },
             { id: 'signals', label: 'Signals & Rules', icon: Radio },
             { id: 'watchlist', label: 'Watchlist', icon: Star },
+            { id: 'history', label: 'Signal History', icon: History },
             { id: 'backtesting', label: 'Backtesting', icon: TestTube2 },
             { id: 'alerts', label: 'Alerts & Scanner', icon: BellRing },
             { id: 'deployment', label: 'Deployment', icon: Boxes },
@@ -602,6 +606,11 @@ export const Dashboard = ({
             setActiveTab && setActiveTab('markets');
           }}
         />
+      )}
+
+      {/* DEDICATED WORKSPACE: SIGNAL HISTORY CONSOLE (SECTION 15) */}
+      {showHistory && (
+        <SignalHistoryConsole />
       )}
 
       {/* Market Overview Section */}

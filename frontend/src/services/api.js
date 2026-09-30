@@ -9,6 +9,15 @@ export const api = axios.create({
   },
 });
 
+// Attach JWT token from localStorage if present
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('forexai_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const fetchHealth = async () => {
   try {
     const startTime = Date.now();
@@ -355,5 +364,138 @@ export const fetchBacktestStrategies = async () => {
   }
 };
 
+// Section 15: Signal History Endpoints
+export const fetchSignalHistory = async (params = {}) => {
+  try {
+    const response = await api.get('/signals/history', { params });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+// Section 1 & 18: User Authentication Endpoints
+export const loginUser = async (credentials) => {
+  try {
+    const response = await api.post('/auth/login', credentials);
+    if (response.data?.token) {
+      localStorage.setItem('forexai_token', response.data.token);
+      localStorage.setItem('forexai_user', JSON.stringify(response.data.user));
+    }
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || 'Login failed',
+    };
+  }
+};
+
+export const registerUser = async (userData) => {
+  try {
+    const response = await api.post('/auth/register', userData);
+    if (response.data?.token) {
+      localStorage.setItem('forexai_token', response.data.token);
+      localStorage.setItem('forexai_user', JSON.stringify(response.data.user));
+    }
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || 'Registration failed',
+    };
+  }
+};
+
+export const fetchUserProfile = async () => {
+  try {
+    const response = await api.get('/auth/me');
+    return {
+      success: true,
+      data: response.data?.user,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const updateUserPreferences = async (preferences) => {
+  try {
+    const response = await api.put('/auth/preferences', preferences);
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+// Section 18: Watchlist Endpoints
+export const fetchWatchlist = async () => {
+  try {
+    const response = await api.get('/watchlist');
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const addToWatchlistApi = async (pair) => {
+  try {
+    const response = await api.post('/watchlist', { pair });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const removeFromWatchlistApi = async (pair) => {
+  try {
+    const cleanPair = pair.replace('/', '');
+    const response = await api.delete(`/watchlist/${cleanPair}`);
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export default api;
+
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getActiveSignals,
+  getSignalHistory,
   evaluatePairSignal,
   evaluateAllSignals,
   getSignalById,
@@ -12,6 +13,9 @@ const router = Router();
 
 // Signal lifecycle events (Phase 8)
 router.get('/events', getScannerEvents);
+
+// Signal History (Section 15)
+router.get('/history', getSignalHistory);
 
 // Active monitored signals
 router.get('/active', getActiveSignals);

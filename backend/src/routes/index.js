@@ -8,14 +8,22 @@ import aiRoutes from './aiRoutes.js';
 import scannerRoutes from './scannerRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import backtestRoutes from './backtestRoutes.js';
+import authRoutes from './authRoutes.js';
+import watchlistRoutes from './watchlistRoutes.js';
 
 const router = Router();
 
 // Base health check
 router.use('/health', healthRoutes);
 
+// User Authentication & Profile (Section 1 & 18)
+router.use('/auth', authRoutes);
+
 // Market Data API (Phase 2)
 router.use('/markets', marketRoutes);
+
+// Custom User Watchlist (Section 2 & 18)
+router.use('/watchlist', watchlistRoutes);
 
 // Technical Analysis Engine (Phase 3)
 router.use('/analysis', analysisRoutes);
@@ -47,13 +55,16 @@ router.get('/', (req, res) => {
     status: 'online',
     endpoints: {
       health: '/api/health',
+      auth: '/api/auth',
       markets: '/api/markets',
+      watchlist: '/api/watchlist',
       analysis: '/api/analysis',
       signals: '/api/signals',
       risk: '/api/risk',
-      auth: '/api/auth (Phase 1/Auth)',
-      watchlist: '/api/watchlist (Phase 6)',
-      backtest: '/api/backtest (Phase 10)',
+      ai: '/api/ai',
+      scanner: '/api/scanner',
+      notifications: '/api/notifications',
+      backtest: '/api/backtest',
     },
   });
 });

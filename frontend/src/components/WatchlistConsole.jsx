@@ -11,6 +11,7 @@ import {
   Radio,
   ArrowRight,
 } from 'lucide-react';
+import { fetchWatchlist, addToWatchlistApi, removeFromWatchlistApi } from '../services/api';
 
 const STORAGE_KEY = 'forex_ai_watchlist';
 
@@ -31,6 +32,16 @@ export const WatchlistConsole = ({
 
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'BUY' | 'SELL' | 'NO_TRADE'
 
+  // Fetch watchlist from backend if available
+  useEffect(() => {
+    fetchWatchlist().then((res) => {
+      if (res.success && res.data?.pairs && res.data.pairs.length > 0) {
+        setWatchlist(res.data.pairs);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data.pairs));
+      }
+    });
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(watchlist));
@@ -40,9 +51,13 @@ export const WatchlistConsole = ({
   }, [watchlist]);
 
   const toggleWatchlist = (pair) => {
-    setWatchlist((prev) =>
-      prev.includes(pair) ? prev.filter((p) => p !== pair) : [...prev, pair]
-    );
+    if (watchlist.includes(pair)) {
+      setWatchlist((prev) => prev.filter((p) => p !== pair));
+      removeFromWatchlistApi(pair);
+    } else {
+      setWatchlist((prev) => [...prev, pair]);
+      addToWatchlistApi(pair);
+    }
   };
 
   const watchlistItems = pairsData.filter((p) => watchlist.includes(p.pair));

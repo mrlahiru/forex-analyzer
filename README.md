@@ -244,12 +244,19 @@ All backend endpoints are accessible at `http://localhost:5001/api` (or `/api` i
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/health` | Server uptime, DB status, and system capabilities. |
+| `POST` | `/auth/register` | Register a new user account with bcrypt password hashing and JWT token issuance. |
+| `POST` | `/auth/login` | Authenticate existing user credentials and receive JWT access token. |
+| `GET` | `/auth/me` | Fetch currently authenticated user profile and saved preferences. |
+| `GET` | `/watchlist` | Retrieve user-specific currency pair watchlist with live quotes. |
+| `POST` | `/watchlist` | Add a currency pair to custom watchlist. |
+| `DELETE` | `/watchlist/:pair` | Remove a currency pair from custom watchlist. |
 | `GET` | `/markets` | Real-time prices, 24h change %, and active signals for all 7 pairs. |
 | `GET` | `/markets/:pair/candles` | OHLCV candlestick bars for specified pair and timeframe (`1m`, `5m`, `15m`, `1h`, `4h`, `1d`). |
 | `GET` | `/analysis/:pair` | EMA 20/50/200, Wilder RSI, MACD, ATR, swings, and S/R levels. |
 | `GET` | `/analysis/:pair/multi-timeframe` | Multi-timeframe trend alignment and MTF veto evaluation across 4H, 1H, 15M, 5M. |
 | `GET` | `/signals/evaluate/:pair` | 100-point deterministic score, breakdown, triggers, and BUY/SELL/NO TRADE verdict. |
 | `GET` | `/signals/active` | All currently active valid trading signals. |
+| `GET` | `/signals/history` | Historical closed trade records, outcome pips, win rates, and multi-parameter filters (Section 15). |
 | `POST` | `/risk/calculate` | Compute lot sizes, pip value, and reward projections for specified account balance & risk %. |
 | `GET` | `/risk/parameters/:pair` | Structural entry, ATR-buffered SL, and dynamic TP1, TP2, TP3 targets. |
 | `GET` | `/ai/explain/:pair` | Non-hallucinatory AI synthesis: Executive Summary, Justification, Invalidation & Risks. |
@@ -261,6 +268,10 @@ All backend endpoints are accessible at `http://localhost:5001/api` (or `/api` i
 | `POST` | `/notifications/settings` | Update alert preferences (TP hits, SL hits, minimum score threshold). |
 | `POST` | `/backtest/run` | Execute historical strategy backtest across bars (`pair`, `timeframe`, `bars`, `riskRewardRatio`). |
 | `GET` | `/backtest/results` | Fetch historical backtest execution run summary and KPI statistics. |
+
+### Real-Time WebSocket Feed
+- **URL**: `ws://localhost:5001/ws`
+- **Events**: Instant push of scanner lifecycle events (`TP1_HIT`, `TP2_HIT`, `TP3_HIT`, `SL_HIT`) and ping/pong heartbeats.
 
 ---
 

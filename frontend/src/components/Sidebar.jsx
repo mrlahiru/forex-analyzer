@@ -17,6 +17,7 @@ const navItems = [
   { id: 'markets', name: 'Markets', icon: TrendingUp, badge: 'Live' },
   { id: 'signals', name: 'Signals', icon: Radio, badge: '100-Pt' },
   { id: 'watchlist', name: 'Watchlist', icon: Star, badge: 'Custom' },
+  { id: 'history', name: 'Signal History', icon: History, badge: 'Sec 15' },
   { id: 'backtesting', name: 'Backtesting', icon: TestTube2, badge: 'Quant' },
   { id: 'alerts', name: 'Alerts & Scanner', icon: BellRing, badge: 'Auto' },
   { id: 'deployment', name: 'Deployment', icon: Boxes, badge: 'Docker' },
