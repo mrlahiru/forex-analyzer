@@ -19,6 +19,7 @@ export class MarketDataManager {
       'AUD/USD',
       'USD/CAD',
       'NZD/USD',
+      'XAU/USD',
     ];
 
     this.supportedTimeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
@@ -152,11 +153,13 @@ export class MarketDataManager {
     if (this.lastBatchQuotes && now - this.lastBatchFetch < batchTtl) {
       return this.lastBatchQuotes.map((q) => {
         const isJpy = q.pair.includes('JPY');
-        const spreadFactor = isJpy ? 0.015 : 0.00004;
+        const isGold = q.pair.includes('XAU') || q.pair.includes('GOLD');
+        const spreadFactor = isGold ? 0.35 : (isJpy ? 0.015 : 0.00004);
+        const decimals = (isJpy || isGold) ? 2 : 5;
         const tick = (Math.random() - 0.5) * spreadFactor;
-        const newPrice = parseFloat((q.price + tick).toFixed(isJpy ? 3 : 5));
+        const newPrice = parseFloat((q.price + tick).toFixed(decimals));
         const prevClose = q.price - (q.change || 0);
-        const newChange = parseFloat((newPrice - prevClose).toFixed(5));
+        const newChange = parseFloat((newPrice - prevClose).toFixed(decimals));
         const newChangePercent = prevClose !== 0 ? parseFloat((((newPrice - prevClose) / prevClose) * 100).toFixed(2)) : q.changePercent;
 
         return {

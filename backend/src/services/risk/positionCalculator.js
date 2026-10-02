@@ -11,6 +11,11 @@
 export const getPipValuePerLot = (pair, currentPrice) => {
   const normPair = pair?.toUpperCase().replace(/[^A-Z]/g, '') || 'EURUSD';
 
+  // Gold (XAU/USD): 1 standard lot = 100 oz. 1 pip ($0.10 price move) = $10.00
+  if (normPair.includes('XAU') || normPair.includes('GOLD')) {
+    return 10.0;
+  }
+
   // Pairs where USD is quote currency: 1 pip = $10.00 per standard lot
   if (
     normPair.endsWith('USD') // EUR/USD, GBP/USD, AUD/USD, NZD/USD
@@ -64,7 +69,8 @@ export const calculatePositionSize = (input) => {
   const riskPct = Math.min(Math.max(parseFloat(riskPercentage) || 1.0, 0.1), 10.0);
 
   const isJPY = pair?.includes('JPY');
-  const pipMultiplier = isJPY ? 100 : 10000;
+  const isGold = pair?.includes('XAU') || pair?.includes('GOLD');
+  const pipMultiplier = isGold ? 10 : (isJPY ? 100 : 10000);
 
   // Max Risk Capital
   const riskAmount = parseFloat(((balance * riskPct) / 100).toFixed(2));

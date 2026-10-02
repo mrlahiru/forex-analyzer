@@ -34,6 +34,12 @@ import {
   BellRing,
   Boxes,
   Settings,
+  Terminal,
+  Crosshair,
+  Globe,
+  Wifi,
+  SlidersHorizontal,
+  Lock,
 } from 'lucide-react';
 import {
   fetchMarkets,
@@ -41,6 +47,8 @@ import {
   fetchAnalysis,
   fetchMultiTimeframeAnalysis,
   evaluateAllSignals,
+  evaluatePairSignal,
+  fetchActiveSignals,
   calculateRisk,
   fetchAiExplanation,
   fetchScannerStatus,
@@ -64,51 +72,62 @@ import { WatchlistConsole } from '../components/WatchlistConsole';
 import { SettingsConsole } from '../components/SettingsConsole';
 import { SignalHistoryConsole } from '../components/SignalHistoryConsole';
 
+const pairMeta = {
+  'EUR/USD': { base: '🇪🇺', quote: '🇺🇸', name: 'Euro / US Dollar', spread: '0.6' },
+  'GBP/USD': { base: '🇬🇧', quote: '🇺🇸', name: 'British Pound / US Dollar', spread: '0.9' },
+  'USD/JPY': { base: '🇺🇸', quote: '🇯🇵', name: 'US Dollar / Japanese Yen', spread: '0.8' },
+  'USD/CHF': { base: '🇺🇸', quote: '🇨🇭', name: 'US Dollar / Swiss Franc', spread: '1.1' },
+  'AUD/USD': { base: '🇦🇺', quote: '🇺🇸', name: 'Australian Dollar / US Dollar', spread: '0.8' },
+  'USD/CAD': { base: '🇺🇸', quote: '🇨🇦', name: 'US Dollar / Canadian Dollar', spread: '1.2' },
+  'NZD/USD': { base: '🇳🇿', quote: '🇺🇸', name: 'New Zealand Dollar / US Dollar', spread: '1.3' },
+  'EUR/GBP': { base: '🇪🇺', quote: '🇬🇧', name: 'Euro / British Pound', spread: '0.9' },
+  'XAU/USD': { base: '🟡', quote: '🇺🇸', name: 'Gold / US Dollar', spread: '1.8' },
+};
 
 const defaultFallbackPairs = [
   {
     pair: 'EUR/USD',
-    price: 1.0842,
-    change: 0.0034,
-    changePercent: 0.34,
+    price: 1.1228,
+    change: 0.0014,
+    changePercent: 0.12,
     trend: 'Bullish (Above EMA 50/200)',
     signal: 'BUY',
     score: 84,
     confidence: 'STRONG',
-    entry: 1.0842,
-    tp1: 1.0858,
-    tp2: 1.0874,
-    tp3: 1.089,
-    sl: 1.0826,
+    entry: 1.1228,
+    tp1: 1.1250,
+    tp2: 1.1280,
+    tp3: 1.1310,
+    sl: 1.1195,
     rr: '1:2.4',
     timeframe: '1h',
     breakdown: { emaTrend: 22, macd: 16, rsi: 15, marketStructure: 10, supportResistance: 11, volatility: 10 },
-    reasons: ['Price is trading above EMA 20', 'EMA 20 is above EMA 50', 'MACD histogram is positive', 'RSI is 61.4 (Healthy momentum)'],
+    reasons: ['Price is trading above EMA 20', 'EMA 20 is above EMA 50', 'MACD histogram is positive'],
   },
   {
     pair: 'GBP/USD',
-    price: 1.2981,
-    change: -0.0021,
-    changePercent: -0.21,
+    price: 1.3186,
+    change: -0.0018,
+    changePercent: -0.14,
     trend: 'Bearish Breakdown',
     signal: 'SELL',
     score: 78,
     confidence: 'STRONG',
-    entry: 1.2981,
-    tp1: 1.2965,
-    tp2: 1.2942,
-    tp3: 1.291,
-    sl: 1.3005,
-    rr: '1:2.9',
+    entry: 1.3186,
+    tp1: 1.3150,
+    tp2: 1.3115,
+    tp3: 1.3080,
+    sl: 1.3225,
+    rr: '1:2.8',
     timeframe: '1h',
     breakdown: { emaTrend: 20, macd: 16, rsi: 15, marketStructure: 11, supportResistance: 8, volatility: 8 },
-    reasons: ['Price is below EMA 20 and EMA 50', 'MACD histogram is negative', 'Lower High & Lower Low printed'],
+    reasons: ['Price is below EMA 20 and EMA 50', 'MACD histogram is negative'],
   },
   {
     pair: 'USD/JPY',
-    price: 154.65,
-    change: 0.12,
-    changePercent: 0.08,
+    price: 157.86,
+    change: 0.22,
+    changePercent: 0.14,
     trend: 'Consolidation Range',
     signal: 'NO_TRADE',
     score: 52,
@@ -121,13 +140,13 @@ const defaultFallbackPairs = [
     rr: '—',
     timeframe: '1h',
     breakdown: { emaTrend: 12, macd: 10, rsi: 10, marketStructure: 6, supportResistance: 8, volatility: 6 },
-    reasons: ['Technical setup score (52/100) below minimum edge threshold (60)', 'Consolidation range without directional edge'],
+    reasons: ['Technical setup score (52/100) below minimum edge threshold (60)'],
   },
   {
     pair: 'USD/CHF',
-    price: 0.8845,
-    change: -0.0011,
-    changePercent: -0.12,
+    price: 0.8322,
+    change: -0.0008,
+    changePercent: -0.10,
     trend: 'Neutral / Range Bound',
     signal: 'NO_TRADE',
     score: 48,
@@ -144,60 +163,79 @@ const defaultFallbackPairs = [
   },
   {
     pair: 'AUD/USD',
-    price: 0.6534,
-    change: 0.0029,
-    changePercent: 0.45,
-    trend: 'Bullish Pullback',
-    signal: 'BUY',
-    score: 76,
-    confidence: 'MODERATE',
-    entry: 0.6534,
-    tp1: 0.6548,
-    tp2: 0.6565,
-    tp3: 0.659,
-    sl: 0.6515,
-    rr: '1:2.1',
+    price: 0.6916,
+    change: -0.0035,
+    changePercent: -0.50,
+    trend: 'Bearish Continuation',
+    signal: 'SELL',
+    score: 92,
+    confidence: 'STRONG',
+    entry: 0.6951,
+    tp1: 0.6928,
+    tp2: 0.6905,
+    tp3: 0.6881,
+    sl: 0.6975,
+    rr: '1:2.0',
     timeframe: '1h',
-    breakdown: { emaTrend: 18, macd: 16, rsi: 15, marketStructure: 8, supportResistance: 11, volatility: 8 },
-    reasons: ['Dynamic support bounce near 0.6520', 'MACD line positive with bullish histogram'],
+    breakdown: { emaTrend: 22, macd: 18, rsi: 16, marketStructure: 12, supportResistance: 12, volatility: 12 },
+    reasons: ['Price is trading below EMA 20 & EMA 50', 'Bearish breakdown below recent swing low'],
   },
   {
     pair: 'USD/CAD',
-    price: 1.3912,
-    change: -0.0022,
-    changePercent: -0.16,
-    trend: 'Bearish Continuation',
-    signal: 'SELL',
+    price: 1.4252,
+    change: 0.0022,
+    changePercent: 0.15,
+    trend: 'Bullish Continuation',
+    signal: 'BUY',
     score: 74,
     confidence: 'MODERATE',
-    entry: 1.3912,
-    tp1: 1.3895,
-    tp2: 1.3872,
-    tp3: 1.384,
-    sl: 1.3938,
-    rr: '1:2.8',
+    entry: 1.4252,
+    tp1: 1.4285,
+    tp2: 1.4315,
+    tp3: 1.4345,
+    sl: 1.4215,
+    rr: '1:2.5',
     timeframe: '1h',
     breakdown: { emaTrend: 18, macd: 16, rsi: 15, marketStructure: 8, supportResistance: 9, volatility: 8 },
-    reasons: ['Rejected dynamic EMA resistance', 'Bearish structural lower high formation'],
+    reasons: ['Supported above dynamic EMA trendline', 'Bullish structural continuation'],
   },
   {
     pair: 'NZD/USD',
-    price: 0.5891,
-    change: 0.0016,
-    changePercent: 0.27,
-    trend: 'Consolidation',
-    signal: 'NO_TRADE',
-    score: 55,
-    confidence: 'LOW',
-    entry: null,
-    tp1: null,
-    tp2: null,
-    tp3: null,
-    sl: null,
-    rr: '—',
+    price: 0.5601,
+    change: -0.0033,
+    changePercent: -0.58,
+    trend: 'Bearish Distribution',
+    signal: 'SELL',
+    score: 90,
+    confidence: 'STRONG',
+    entry: 0.5634,
+    tp1: 0.5613,
+    tp2: 0.5592,
+    tp3: 0.5571,
+    sl: 0.5656,
+    rr: '1:2.0',
     timeframe: '1h',
-    breakdown: { emaTrend: 12, macd: 10, rsi: 11, marketStructure: 8, supportResistance: 8, volatility: 6 },
-    reasons: ['Score below 60 threshold', 'Low volume compression below supply zone'],
+    breakdown: { emaTrend: 22, macd: 18, rsi: 16, marketStructure: 12, supportResistance: 11, volatility: 11 },
+    reasons: ['Price is trading below EMA 20', 'EMA 20 is below EMA 50', 'MACD histogram is negative'],
+  },
+  {
+    pair: 'XAU/USD',
+    price: 4197.40,
+    change: 8.90,
+    changePercent: 0.21,
+    trend: 'Bearish Momentum (+0.21%)',
+    signal: 'SELL',
+    score: 76,
+    confidence: 'MODERATE',
+    entry: 4197.40,
+    tp1: 4168.00,
+    tp2: 4140.00,
+    tp3: 4112.00,
+    sl: 4225.50,
+    rr: '1:2.0',
+    timeframe: '1h',
+    breakdown: { emaTrend: 22, macd: 16, rsi: 7, marketStructure: 0, supportResistance: 11, volatility: 10 },
+    reasons: ['Price trading below EMA 20 & EMA 50', 'MACD histogram is negative'],
   },
 ];
 
@@ -276,10 +314,11 @@ export const Dashboard = ({
   const loadMarketAndSignals = async () => {
     setLoadingSignal(true);
 
-    const [marketsRes, signalsRes, statusRes] = await Promise.all([
+    const [marketsRes, signalsRes, statusRes, activeSignalsRes] = await Promise.all([
       fetchMarkets(),
       evaluateAllSignals(selectedTimeframe),
       fetchProviderStatus(),
+      fetchActiveSignals(),
     ]);
 
     if (statusRes.success && statusRes.data) {
@@ -297,12 +336,34 @@ export const Dashboard = ({
     }
 
     if (marketsRes.success && marketsRes.data?.markets?.length > 0) {
-      setPairsData((prev) =>
-        prev.map((item) => {
-          const marketMatch = marketsRes.data.markets.find((m) => m.pair === item.pair);
-          const sigMatch = signalsRes.data?.signals?.find((s) => s.pair === item.pair);
+      const signalsList = Array.isArray(signalsRes.data)
+        ? signalsRes.data
+        : (signalsRes.data?.signals || []);
 
-          const newPrice = marketMatch ? marketMatch.price : (sigMatch?.entry || item.price);
+      const activeSignalsList = Array.isArray(activeSignalsRes.data)
+        ? activeSignalsRes.data
+        : (activeSignalsRes.data?.signals || []);
+
+      setPairsData((prev) => {
+        const updated = prev.map((item) => {
+          const marketMatch = marketsRes.data.markets.find((m) => m.pair === item.pair);
+          const sigMatch = signalsList.find((s) => s.pair === item.pair);
+          const activeMatch = activeSignalsList.find((a) => a.pair === item.pair && (a.status === 'ACTIVE' || a.status?.includes('TP')));
+
+          const isTradeActive = Boolean(activeMatch);
+          // If on the base timeframe (1h) or when instant evaluation is NO_TRADE (consolidation mid-trade), harmonize with the active position
+          const useActive = isTradeActive && (selectedTimeframe === '1h' || !sigMatch || sigMatch.direction === 'NO_TRADE');
+
+          const resolvedSignal = useActive ? activeMatch.direction : (sigMatch?.direction || item.signal);
+          const resolvedScore = useActive ? activeMatch.score : (sigMatch?.score || item.score);
+          const resolvedConfidence = useActive ? activeMatch.confidence : (sigMatch?.confidence || item.confidence);
+          const resolvedEntry = useActive ? activeMatch.entry : (sigMatch?.entry || item.entry);
+          const resolvedTp1 = useActive ? activeMatch.tp1 : (sigMatch?.tp1 !== undefined ? sigMatch.tp1 : item.tp1);
+          const resolvedTp2 = useActive ? activeMatch.tp2 : (sigMatch?.tp2 !== undefined ? sigMatch.tp2 : item.tp2);
+          const resolvedTp3 = useActive ? activeMatch.tp3 : (sigMatch?.tp3 !== undefined ? sigMatch.tp3 : item.tp3);
+          const resolvedSl = useActive ? activeMatch.stopLoss : (sigMatch?.stopLoss !== undefined ? sigMatch.stopLoss : item.sl);
+
+          const newPrice = marketMatch ? marketMatch.price : (resolvedEntry || item.price);
           if (item.price && newPrice && newPrice !== item.price) {
             setPriceDeltas((deltas) => ({
               ...deltas,
@@ -323,20 +384,59 @@ export const Dashboard = ({
             trend: dynamicTrend,
             isLive: marketMatch?.isLive ?? marketsRes.data?.isLive,
             provider: marketMatch?.provider || marketsRes.data?.activeProvider,
-            signal: sigMatch?.direction || item.signal,
-            score: sigMatch?.score || item.score,
-            confidence: sigMatch?.confidence || item.confidence,
-            entry: sigMatch?.entry || item.entry,
-            tp1: sigMatch?.tp1 !== undefined ? sigMatch.tp1 : item.tp1,
-            tp2: sigMatch?.tp2 !== undefined ? sigMatch.tp2 : item.tp2,
-            tp3: sigMatch?.tp3 !== undefined ? sigMatch.tp3 : item.tp3,
-            sl: sigMatch?.stopLoss !== undefined ? sigMatch.stopLoss : item.sl,
-            breakdown: sigMatch?.breakdown || item.breakdown,
-            reasons: sigMatch?.reasons || item.reasons,
-            timeframeConsensus: sigMatch?.timeframeConsensus || item.timeframeConsensus,
+            signal: resolvedSignal,
+            score: resolvedScore,
+            confidence: resolvedConfidence,
+            entry: resolvedEntry,
+            tp1: resolvedTp1,
+            tp2: resolvedTp2,
+            tp3: resolvedTp3,
+            sl: resolvedSl,
+            breakdown: (useActive && activeMatch.breakdown) || sigMatch?.breakdown || item.breakdown,
+            reasons: (useActive && activeMatch.reasons) || sigMatch?.reasons || item.reasons,
+            timeframeConsensus: (useActive && activeMatch.timeframeConsensus) || sigMatch?.timeframeConsensus || item.timeframeConsensus,
+            activeTrade: activeMatch || null,
           };
-        })
-      );
+        });
+
+        // Append any markets from API not yet in pairsData
+        marketsRes.data.markets.forEach((m) => {
+          if (!updated.some((item) => item.pair === m.pair)) {
+            const sigMatch = signalsList.find((s) => s.pair === m.pair);
+            const activeMatch = activeSignalsList.find((a) => a.pair === m.pair && (a.status === 'ACTIVE' || a.status?.includes('TP')));
+            const useActive = Boolean(activeMatch);
+            const chgPct = m.changePercent || 0;
+            const dynamicTrend = chgPct >= 0
+              ? `Bullish Momentum (+${chgPct.toFixed(2)}%)`
+              : `Bearish Pressure (${chgPct.toFixed(2)}%)`;
+            updated.push({
+              pair: m.pair,
+              price: m.price,
+              change: m.change || 0,
+              changePercent: chgPct,
+              trend: dynamicTrend,
+              isLive: m.isLive ?? marketsRes.data?.isLive,
+              provider: m.provider || marketsRes.data?.activeProvider,
+              signal: useActive ? activeMatch.direction : (sigMatch?.direction || 'NO_TRADE'),
+              score: useActive ? activeMatch.score : (sigMatch?.score || 50),
+              confidence: useActive ? activeMatch.confidence : (sigMatch?.confidence || 'LOW'),
+              entry: useActive ? activeMatch.entry : (sigMatch?.entry || m.price),
+              tp1: useActive ? activeMatch.tp1 : (sigMatch?.tp1 || null),
+              tp2: useActive ? activeMatch.tp2 : (sigMatch?.tp2 || null),
+              tp3: useActive ? activeMatch.tp3 : (sigMatch?.tp3 || null),
+              sl: useActive ? activeMatch.stopLoss : (sigMatch?.stopLoss || null),
+              rr: '1:2.0',
+              timeframe: selectedTimeframe,
+              breakdown: (useActive && activeMatch.breakdown) || sigMatch?.breakdown || { emaTrend: 15, macd: 10, rsi: 10, marketStructure: 10, supportResistance: 10, volatility: 8 },
+              reasons: (useActive && activeMatch.reasons) || sigMatch?.reasons || ['Algorithmic multi-timeframe analysis'],
+              timeframeConsensus: (useActive && activeMatch.timeframeConsensus) || sigMatch?.timeframeConsensus || 'BALANCED',
+              activeTrade: activeMatch || null,
+            });
+          }
+        });
+
+        return updated;
+      });
 
       // Auto-clear price flash deltas after 1.5 seconds
       setTimeout(() => {
@@ -362,10 +462,11 @@ export const Dashboard = ({
       loadAiExplanation(pair, timeframe);
     }
 
-    const [candleRes, anaRes, mtfRes] = await Promise.all([
+    const [candleRes, anaRes, mtfRes, sigRes] = await Promise.all([
       fetchCandles(pair, timeframe, 100),
       fetchAnalysis(pair, timeframe),
       fetchMultiTimeframeAnalysis(pair),
+      evaluatePairSignal(pair, timeframe),
     ]);
 
     if (candleRes.success && candleRes.data?.candles) {
@@ -376,6 +477,30 @@ export const Dashboard = ({
     }
     if (mtfRes.success) {
       setMtfData(mtfRes.data);
+    }
+    if (sigRes.success && sigRes.data) {
+      const liveSig = sigRes.data;
+      setActiveSignalDetails(liveSig);
+      setPairsData((prev) =>
+        prev.map((item) =>
+          item.pair === pair
+            ? {
+                ...item,
+                signal: liveSig.direction || item.signal,
+                score: liveSig.score || item.score,
+                confidence: liveSig.confidence || item.confidence,
+                entry: liveSig.entry || item.entry,
+                tp1: liveSig.tp1 !== undefined ? liveSig.tp1 : item.tp1,
+                tp2: liveSig.tp2 !== undefined ? liveSig.tp2 : item.tp2,
+                tp3: liveSig.tp3 !== undefined ? liveSig.tp3 : item.tp3,
+                sl: liveSig.stopLoss !== undefined ? liveSig.stopLoss : item.sl,
+                breakdown: liveSig.breakdown || item.breakdown,
+                reasons: liveSig.reasons || item.reasons,
+                timeframeConsensus: liveSig.timeframeConsensus || item.timeframeConsensus,
+              }
+            : item
+        )
+      );
     }
   };
 
@@ -585,35 +710,95 @@ export const Dashboard = ({
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner: Institutional Mission Control Deck */}
-      <div className="glass-panel rounded-3xl p-6 relative overflow-hidden card-shine border border-white/[0.09] shadow-2xl">
-        {/* Ambient Corner Radial Accents */}
-        <div className="absolute -top-32 -right-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Top Banner: Institutional Command Center & Mission Control Deck */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-7 relative overflow-hidden card-shine border border-blue-500/25 bg-gradient-to-b from-[#090e1f]/95 via-[#070b16]/95 to-[#04060d]/98 shadow-[0_0_60px_-15px_rgba(59,130,246,0.22)] backdrop-blur-2xl">
+        {/* HUD Corner Tech Brackets */}
+        <div className="absolute top-2.5 left-2.5 w-3 h-3 border-t-2 border-l-2 border-cyan-400/70 pointer-events-none" />
+        <div className="absolute top-2.5 right-2.5 w-3 h-3 border-t-2 border-r-2 border-cyan-400/70 pointer-events-none" />
+        <div className="absolute bottom-2.5 left-2.5 w-3 h-3 border-b-2 border-l-2 border-cyan-400/70 pointer-events-none" />
+        <div className="absolute bottom-2.5 right-2.5 w-3 h-3 border-b-2 border-r-2 border-cyan-400/70 pointer-events-none" />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+        {/* Top Animated Cyber Trace Line */}
+        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
+
+        {/* Ambient Corner Radial Accents */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* DECK 1: Telemetry & Horizon Command Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-white/[0.08] relative z-10">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-2 shadow-sm shadow-emerald-500/10">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="px-3 py-1 rounded-full text-xs font-mono font-black bg-gradient-to-r from-blue-600/30 to-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center space-x-2 shadow-sm shadow-cyan-500/15">
+                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+                <span>COMMAND CENTER // ALPHA V2.4</span>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                </span>
+              </span>
+
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 shadow-sm shadow-emerald-500/10">
+                <Wifi className="w-3 h-3 text-emerald-400" />
                 <span>WS TICK STREAM LIVE</span>
               </span>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
-                QUANT 100-PT SCORING
+
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-white/[0.05] text-slate-300 border border-white/[0.08] flex items-center space-x-1.5">
+                <Globe className="w-3 h-3 text-blue-400" />
+                <span>LONDON / NY OVERLAP</span>
               </span>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                AI COGNITIVE SYNTHESIS
+
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center space-x-1.5">
+                <Cpu className="w-3 h-3 text-purple-400" />
+                <span>100-PT QUANT ENGINE</span>
+              </span>
+
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center space-x-1.5">
+                <ShieldCheck className="w-3 h-3 text-amber-400" />
+                <span>1.0% RISK CEILING</span>
               </span>
             </div>
-            <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
-              ForexAI Quantitative Terminal — Algorithmic Market Station
-            </h1>
-            <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
-              Real-time multi-currency orderflow scoring, institutional ATR stop-loss, dynamic multi-target TP execution, TradingView charts, background scanner & quantitative risk engine.
-            </p>
+
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+                Institutional Algorithmic Mission Control
+              </h1>
+              <span className="text-xs font-mono text-cyan-400 font-bold hidden sm:inline">
+                // ZERO-BROKER ANALYTICAL STATION
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
+          {/* Quick Action & Provider Command Deck */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {/* 1-Click Data Provider Switcher */}
+            <div className="flex items-center p-1 rounded-2xl bg-black/50 border border-white/[0.08] shadow-inner">
+              <button
+                onClick={() => handleSwitchProvider('yahoo_finance')}
+                disabled={switchingProvider}
+                title="Switch to Yahoo Finance (Unlimited Live Ticks)"
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                  feedSource.includes('Yahoo')
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Yahoo (Free)
+              </button>
+              <button
+                onClick={() => handleSwitchProvider('twelve_data')}
+                disabled={switchingProvider}
+                title="Switch to Twelve Data (Eco-Mode Credit Saver)"
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                  feedSource.includes('TwelveData')
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                TwelveData
+              </button>
+            </div>
+
             <button
               onClick={() => {
                 onRefreshHealth();
@@ -621,16 +806,17 @@ export const Dashboard = ({
                 loadPairDetails(selectedPair.pair, selectedTimeframe);
               }}
               disabled={isRefreshing || loadingSignal}
-              className="flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-700/90 hover:from-slate-700 hover:to-slate-600 text-xs font-bold text-white border border-white/10 shadow-lg shadow-black/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-xs font-bold font-mono text-white border border-blue-400/30 shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loadingSignal ? 'animate-spin text-blue-400' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loadingSignal ? 'animate-spin text-white' : ''}`} />
               <span>{loadingSignal ? 'Scoring...' : 'Recalculate Signals'}</span>
             </button>
+
             <a
               href={`http://localhost:5001/api/risk/parameters/${selectedPair.pair.replace('/', '')}?direction=${isSell ? 'SELL' : 'BUY'}&timeframe=${selectedTimeframe}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-blue-600/15 hover:bg-blue-600/25 text-xs font-bold text-blue-300 border border-blue-400/20 transition-all shadow-sm"
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-bold text-slate-200 hover:text-white border border-white/[0.08] transition-all shadow-sm cursor-pointer"
             >
               <span>Risk JSON</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -638,26 +824,341 @@ export const Dashboard = ({
           </div>
         </div>
 
-        {/* Live Diagnostics Frosted Mini-Cards */}
-        <div className="mt-5 pt-4 border-t border-white/[0.08] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono relative z-10">
-          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Active Pair</span>
-            <span className="text-blue-400 font-extrabold text-sm">{selectedPair.pair} ({selectedTimeframe})</span>
+        {/* DECK 2: Cockpit 3-Card Grid (Focus Asset, Signal Engine, Structural Order Execution) */}
+        <div className="mt-5 grid grid-cols-1 lg:grid-cols-12 gap-4 relative z-10">
+          {/* Card 1: Focus Asset & Live Price Engine (4 cols) */}
+          <div className="lg:col-span-4 p-4.5 rounded-2xl bg-[#060a16]/80 border border-white/[0.08] card-shine relative flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">
+                    {pairMeta[selectedPair.pair]?.base || '🇪🇺'} {pairMeta[selectedPair.pair]?.quote || '🇺🇸'}
+                  </span>
+                  <div>
+                    <span className="text-sm font-black font-mono text-white tracking-wide block">
+                      {selectedPair.pair}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400 block">
+                      {pairMeta[selectedPair.pair]?.name || 'Currency Pair'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1.5">
+                  <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-mono font-bold">
+                    {selectedTimeframe.toUpperCase()}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold flex items-center space-x-1 ${
+                      (selectedPair.changePercent || 0) >= 0
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                    }`}
+                  >
+                    <span>{(selectedPair.changePercent || 0) >= 0 ? '+' : ''}{(selectedPair.changePercent || 0).toFixed(2)}%</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Big Real-Time Tick Price */}
+              <div className="mt-3.5">
+                <div className="flex items-baseline space-x-2">
+                  <span
+                    className={`text-3xl sm:text-4xl font-mono font-black tracking-tight tabular-nums transition-all ${
+                      priceDeltas[selectedPair.pair] === 'up'
+                        ? 'animate-[price-flash-green_1.2s_ease-out] text-emerald-300'
+                        : priceDeltas[selectedPair.pair] === 'down'
+                        ? 'animate-[price-flash-red_1.2s_ease-out] text-rose-300'
+                        : 'text-white'
+                    }`}
+                  >
+                    {selectedPair.price ? selectedPair.price.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5) : '—'}
+                  </span>
+                  <span className="text-xs font-mono text-slate-400">USD</span>
+                </div>
+                <p className="text-[11px] font-mono text-slate-400 mt-1 flex items-center space-x-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  <span className="truncate">{selectedPair.trend}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-slate-400">
+              <span>Spread: ~{pairMeta[selectedPair.pair]?.spread || '0.8'} pips</span>
+              <span className="text-cyan-400 font-bold">Live Feed: {feedSource.split(' ')[1] || 'Yahoo'}</span>
+            </div>
           </div>
-          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Engine Direction</span>
-            <span className={`font-black text-sm ${isBuy ? 'text-emerald-400' : isSell ? 'text-rose-400' : 'text-slate-400'}`}>
-              {activeSignalDetails?.signal?.replace('_', ' ') || 'ANALYZING...'}
+
+          {/* Card 2: 100-Point Algorithmic Signal & Confluence Engine (4 cols) */}
+          <div className="lg:col-span-4 p-4.5 rounded-2xl bg-[#060a16]/80 border border-white/[0.08] card-shine relative flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Target className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Deterministic Confluence</span>
+                </span>
+                <span
+                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                    (activeSignalDetails?.score || 0) >= 60
+                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                  }`}
+                >
+                  {(activeSignalDetails?.score || 0) >= 60 ? 'EDGE VERIFIED' : 'WAIT FOR EDGE'}
+                </span>
+              </div>
+
+              {/* Big Direction Badge */}
+              <div className="mt-2.5 flex items-center justify-between">
+                <div
+                  className={`px-3.5 py-1.5 rounded-xl font-mono font-black text-sm flex items-center space-x-2 border shadow-lg ${
+                    isBuy
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/20'
+                      : isSell
+                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-rose-500/20'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-amber-500/20'
+                  }`}
+                >
+                  {isBuy && <TrendingUp className="w-4 h-4 text-emerald-400" />}
+                  {isSell && <TrendingDown className="w-4 h-4 text-rose-400" />}
+                  {isNoTrade && <ShieldAlert className="w-4 h-4 text-amber-400" />}
+                  <span>{activeSignalDetails?.signal?.replace('_', ' ') || 'ANALYZING'}</span>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-2xl font-black font-mono text-white leading-none">
+                    {activeSignalDetails?.score || 0}
+                    <span className="text-xs font-normal text-slate-400">/100</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">
+                    {activeSignalDetails?.confidence || 'MODERATE'} CONVICTION
+                  </span>
+                </div>
+              </div>
+
+              {/* Glowing High-Tech Score Progress Bar */}
+              <div className="mt-3.5 space-y-1">
+                <div className="w-full h-2 rounded-full bg-slate-800/80 overflow-hidden p-0.5 border border-white/[0.06]">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 shadow-sm ${
+                      (activeSignalDetails?.score || 0) >= 70
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-emerald-500/50'
+                        : (activeSignalDetails?.score || 0) >= 60
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-400 shadow-blue-500/50'
+                        : (activeSignalDetails?.score || 0) >= 45
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-400 shadow-amber-500/50'
+                        : 'bg-gradient-to-r from-rose-500 to-red-400 shadow-rose-500/50'
+                    }`}
+                    style={{ width: `${Math.min(100, Math.max(0, activeSignalDetails?.score || 0))}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Factor Breakdown Micro-Pills */}
+            <div className="pt-2.5 border-t border-white/[0.06] grid grid-cols-3 gap-1.5 text-[9px] font-mono text-center">
+              <span className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-300">
+                EMA: <b className="text-cyan-400">{breakdown.emaTrend || 0}</b>/25
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-300">
+                MACD: <b className="text-cyan-400">{breakdown.macd || 0}</b>/20
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-300">
+                RSI: <b className="text-cyan-400">{breakdown.rsi || 0}</b>/15
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-300">
+                Struct: <b className="text-cyan-400">{breakdown.marketStructure || 0}</b>/15
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-300">
+                S/R: <b className="text-cyan-400">{breakdown.supportResistance || 0}</b>/15
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-300">
+                Vol: <b className="text-cyan-400">{breakdown.volatility || 0}</b>/10
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3: Structural Order Execution Targets (Dynamic TP/SL Protocol) (4 cols) */}
+          <div className="lg:col-span-4 p-4.5 rounded-2xl bg-[#060a16]/80 border border-white/[0.08] card-shine relative flex flex-col justify-between space-y-3">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Crosshair className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Execution Target Matrix</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                  RR: {activeSignalDetails?.rr || '1:2.4'}
+                </span>
+              </div>
+
+              {/* Price Targets Matrix */}
+              <div className="mt-2.5 grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="p-2 rounded-xl bg-black/40 border border-cyan-500/20">
+                  <span className="text-[9px] text-cyan-400 font-bold block uppercase">Structural Entry</span>
+                  <span className="text-white font-bold tabular-nums">
+                    {activeSignalDetails?.entry ? activeSignalDetails.entry.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5) : '—'}
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-black/40 border border-rose-500/20">
+                  <span className="text-[9px] text-rose-400 font-bold block uppercase">Stop Loss (ATR)</span>
+                  <span className="text-rose-300 font-bold tabular-nums">
+                    {activeSignalDetails?.sl ? activeSignalDetails.sl.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5) : '—'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-2 grid grid-cols-3 gap-1.5 text-[10px] font-mono text-center">
+                <div className="p-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-[8px] text-emerald-400 font-bold block">TP1 (1:1)</span>
+                  <span className="text-white font-bold tabular-nums block truncate">
+                    {activeSignalDetails?.tp1 ? activeSignalDetails.tp1.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5) : '—'}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-[8px] text-emerald-400 font-bold block">TP2 (1:2)</span>
+                  <span className="text-white font-bold tabular-nums block truncate">
+                    {activeSignalDetails?.tp2 ? activeSignalDetails.tp2.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5) : '—'}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-[8px] text-emerald-400 font-bold block">TP3 (1:3)</span>
+                  <span className="text-white font-bold tabular-nums block truncate">
+                    {activeSignalDetails?.tp3 ? activeSignalDetails.tp3.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5) : '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-slate-400">
+              <span>Risk: {riskPercentage}% (${((accountBalance * riskPercentage) / 100).toFixed(0)} on ${accountBalance.toLocaleString()})</span>
+              <span className="text-amber-400 font-bold">Dynamic Scale-Out Ready</span>
+            </div>
+          </div>
+        </div>
+
+        {/* DECK 3: Interactive Fast-Control Strip (Timeframe Bar & Monitored Pairs Quick-Select) */}
+        <div className="mt-5 pt-4.5 border-t border-white/[0.08] space-y-3 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            {/* Timeframe Selector Strip */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto">
+              <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider mr-1 hidden sm:inline">
+                Timeframe:
+              </span>
+              {TIMEFRAMES.map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => {
+                    setSelectedTimeframe(tf);
+                    loadPairDetails(selectedPair.pair, tf);
+                    loadMarketAndSignals();
+                  }}
+                  className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                    selectedTimeframe === tf
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/25 border border-cyan-400/40 scale-105'
+                      : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
+                  }`}
+                >
+                  {tf.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            <span className="text-[11px] font-mono text-slate-400">
+              Active Focus: <b className="text-cyan-400">{selectedPair.pair}</b> ({selectedTimeframe})
             </span>
           </div>
-          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Signal Score</span>
-            <span className="text-amber-400 font-extrabold text-sm">{activeSignalDetails?.score || 0}/100</span>
+
+          {/* Monitored Pairs Quick-Switch Pills */}
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 thin-scrollbar">
+            {pairsData.map((item) => {
+              const isSelected = item.pair === selectedPair.pair;
+              const isItemBuy = item.signal === 'BUY';
+              const isItemSell = item.signal === 'SELL';
+              const flag = pairMeta[item.pair]?.base || '💱';
+
+              return (
+                <button
+                  key={item.pair}
+                  onClick={() => {
+                    setSelectedPair(item);
+                    loadPairDetails(item.pair, selectedTimeframe);
+                  }}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-mono transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-blue-600/30 text-white border border-blue-400/50 shadow-md shadow-blue-500/20 scale-105'
+                      : 'bg-[#060a16]/60 text-slate-300 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
+                  }`}
+                >
+                  <span>{flag}</span>
+                  <span className="font-bold">{item.pair}</span>
+                  <span className="text-[10px] text-slate-400 tabular-nums">
+                    {item.price ? item.price.toFixed((item.pair.includes('JPY') || item.pair.includes('XAU')) ? 2 : 4) : '—'}
+                  </span>
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isItemBuy ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : isItemSell ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'bg-slate-500'
+                    }`}
+                  />
+                </button>
+              );
+            })}
           </div>
-          <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] card-shine">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Multi-Target Protocol</span>
-            <span className="text-teal-400 font-extrabold text-sm">
-              TP1 (1:1) / TP2 (1:2) / TP3 (1:3)
+        </div>
+
+        {/* DECK 4: 5-Column Live Diagnostics & Quantitative Stack */}
+        <div className="mt-4 pt-4 border-t border-white/[0.08] grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-mono relative z-10 tabular-nums">
+          <div className="p-3 rounded-2xl bg-[#060A14]/70 border border-white/[0.08] card-shine border-l-2 border-l-blue-500">
+            <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Market Structure</span>
+            <span className="text-blue-400 font-black text-xs truncate block">
+              {structure?.trend || selectedPair?.trend || 'Analyzing...'}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate mt-0.5">
+              {structure?.pattern || (structure?.swingHigh ? `H: ${structure.swingHigh} | L: ${structure.swingLow}` : 'Swing Structure Active')}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-[#060A14]/70 border border-white/[0.08] card-shine border-l-2 border-l-emerald-500">
+            <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Wilder's RSI (14)</span>
+            <span className="text-emerald-400 font-black text-xs truncate block">
+              {indicators?.rsi !== undefined ? indicators.rsi.toFixed(1) : (loadingSignal ? 'Calculating...' : '—')}
+              {indicators?.rsi !== undefined ? (indicators.rsi > 70 ? ' (Overbought)' : indicators.rsi < 30 ? ' (Oversold)' : ' (Momentum)') : ''}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate mt-0.5">
+              {indicators?.rsi !== undefined ? (indicators.rsi >= 50 ? 'Bullish Expansion' : 'Bearish Pressure') : 'Wilder 14-period'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-[#060A14]/70 border border-white/[0.08] card-shine border-l-2 border-l-amber-500">
+            <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">MACD Histogram</span>
+            <span className="text-amber-400 font-black text-xs truncate block">
+              {indicators?.macd?.histogram !== undefined
+                ? (indicators.macd.histogram > 0 ? '+' : '') + indicators.macd.histogram.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 5)
+                : (loadingSignal ? 'Calculating...' : '—')}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate mt-0.5">
+              {indicators?.macd?.histogram !== undefined ? (indicators.macd.histogram > 0 ? 'Bullish Expansion Cross' : 'Bearish Divergence Cross') : 'MACD(12,26,9)'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-[#060A14]/70 border border-white/[0.08] card-shine border-l-2 border-l-teal-500">
+            <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">ATR Volatility (14)</span>
+            <span className="text-teal-400 font-black text-xs truncate block">
+              {indicators?.atr !== undefined
+                ? indicators.atr.toFixed((selectedPair.pair.includes('JPY') || selectedPair.pair.includes('XAU')) ? 2 : 4)
+                : (loadingSignal ? 'Calculating...' : '—')}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate mt-0.5">
+              {indicators?.atr && selectedPair?.price ? `${((indicators.atr / selectedPair.price) * 100).toFixed(2)}% Volatility Buffer` : 'Optimal Execution Buffer'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-[#060A14]/70 border border-white/[0.08] card-shine border-l-2 border-l-purple-500 col-span-2 sm:col-span-1">
+            <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Multi-Timeframe</span>
+            <span className="text-purple-400 font-black text-xs truncate block">
+              {activeSignalDetails?.timeframeConsensus || (activeSignalDetails ? `${selectedTimeframe} Confirmed` : 'Analyzing HTF...')}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate mt-0.5">
+              {activeSignalDetails ? `${activeSignalDetails.confidence || 'Active'} Quality` : 'Institutional Confluence'}
             </span>
           </div>
         </div>
@@ -900,7 +1401,7 @@ export const Dashboard = ({
                       }`}
                     >
                       {typeof item.price === 'number'
-                        ? item.price.toFixed(item.pair.includes('JPY') ? 3 : 5)
+                        ? item.price.toFixed((item.pair.includes('JPY') || item.pair.includes('XAU')) ? 2 : 5)
                         : item.price}
                     </div>
                     <div
@@ -943,6 +1444,12 @@ export const Dashboard = ({
                     <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-400 border border-white/[0.05]">
                       {item.confidence}
                     </span>
+                    {item.activeTrade && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300 border border-blue-500/30 flex items-center space-x-1 font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                        <span>{item.activeTrade.status?.replace('_', ' ')}</span>
+                      </span>
+                    )}
                   </div>
 
                   <div className="text-right">

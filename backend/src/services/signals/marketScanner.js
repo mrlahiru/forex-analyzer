@@ -3,6 +3,7 @@ import { marketDataManager } from '../marketData/index.js';
 import { signalService } from './signalService.js';
 import { Signal } from '../../models/Signal.js';
 import { SignalEvent } from '../../models/SignalEvent.js';
+import { signalVerificationService } from './signalVerificationService.js';
 import mongoose from 'mongoose';
 
 /**
@@ -70,8 +71,18 @@ class MarketScannerService {
           price,
           notes,
         });
+
+        // Keep parent Signal document status strictly in sync with lifecycle
+        // Note: CREATED is an event type, but parent document status remains ACTIVE
+        const isClosed = ['TP3_HIT', 'SL_HIT', 'EXPIRED', 'CANCELLED', 'CLOSED'].includes(eventType);
+        const targetStatus = eventType === 'CREATED' ? 'ACTIVE' : eventType;
+        await Signal.findByIdAndUpdate(signal._id, {
+          status: targetStatus,
+          ...(isClosed ? { closedAt: new Date() } : {}),
+          updatedAt: new Date(),
+        });
       } catch (err) {
-        // non-fatal
+        console.warn('[Scanner] DB persistence warning:', err.message);
       }
     }
 
@@ -129,6 +140,50 @@ class MarketScannerService {
   }
 
   /**
+   * Synchronize active signals from MongoDB into scanner tracking memory
+   */
+  async syncTrackedSignalsFromDB() {
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const supported = marketDataManager.supportedPairs;
+        // Clean out any unsupported tracked pairs in memory
+        for (const [key] of this.trackedSignals) {
+          if (!supported.includes(key)) this.trackedSignals.delete(key);
+        }
+
+        const active = await Signal.find({ status: { $in: ['ACTIVE', 'CREATED', 'TP1_HIT', 'TP2_HIT'] } });
+        for (const sig of active) {
+          if (sig.status === 'CREATED') {
+            sig.status = 'ACTIVE';
+            await Signal.findByIdAndUpdate(sig._id, { status: 'ACTIVE' });
+          }
+          if (!supported.includes(sig.pair)) continue;
+          if (!this.trackedSignals.has(sig.pair)) {
+            this.trackedSignals.set(sig.pair, {
+              _id: sig._id,
+              pair: sig.pair,
+              direction: sig.direction,
+              timeframe: sig.timeframe,
+              entry: sig.entry,
+              tp1: sig.tp1,
+              tp2: sig.tp2,
+              tp3: sig.tp3,
+              stopLoss: sig.stopLoss,
+              score: sig.score,
+              status: sig.status,
+              reasons: sig.reasons,
+              riskReward: sig.riskReward,
+              createdAt: sig.createdAt,
+            });
+          }
+        }
+      } catch (e) {
+        // non-fatal
+      }
+    }
+  }
+
+  /**
    * Execute a single market scan cycle across all pairs
    */
   async runScanCycle(timeframe = this.defaultTimeframe) {
@@ -142,6 +197,8 @@ class MarketScannerService {
     const cycleResults = [];
 
     try {
+      await this.syncTrackedSignalsFromDB();
+
       for (const pair of pairs) {
         try {
           // 1. Ingest latest candles and current price
@@ -157,7 +214,7 @@ class MarketScannerService {
           const existing = this.trackedSignals.get(pair);
 
           if (existing && existing.status !== 'EXPIRED' && existing.status !== 'CANCELLED') {
-            await this._checkSignalLifecycle(existing, currentPrice);
+            await this._checkSignalLifecycle(existing, currentPrice, candleResult.candles || []);
           }
 
           // 4. If new trade setup emerged (BUY or SELL with score >= 60)
@@ -214,7 +271,22 @@ class MarketScannerService {
   /**
    * Monitor price action against active signal TP1, TP2, TP3, and Stop Loss
    */
-  async _checkSignalLifecycle(signal, currentPrice) {
+  async _checkSignalLifecycle(signal, currentPrice, candles = []) {
+    // If candles available, evaluate using signalVerificationService
+    if (candles && candles.length > 0) {
+      const outcome = signalVerificationService.evaluateSignalOutcome(signal, candles);
+      if (outcome.verified && outcome.status !== signal.status) {
+        signal.status = outcome.status;
+        signal.closedAt = outcome.closedAt ? outcome.closedAt.toISOString() : new Date().toISOString();
+        await this.emitSignalEvent(
+          outcome.status,
+          signal,
+          outcome.exitPrice || currentPrice,
+          outcome.exitReason || `Lifecycle state updated to ${outcome.status}`
+        );
+        return;
+      }
+    }
     const isBuy = signal.direction === 'BUY';
     const isSell = signal.direction === 'SELL';
     const currentStatus = signal.status;

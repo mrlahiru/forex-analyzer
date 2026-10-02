@@ -30,7 +30,7 @@ export const BacktestConsole = ({
   const [lookbackBars, setLookbackBars] = useState(250);
   const [strategy, setStrategy] = useState('DETERMINISTIC_CORE');
 
-  const pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD'];
+  const pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'XAU/USD'];
   const timeframes = ['15m', '30m', '1h', '4h', '1d'];
 
   const handleSubmit = (e) => {

@@ -15,8 +15,10 @@ router.get('/status', getProviderStatus);
 // Dynamically set active market data provider (e.g. yahoo_finance, twelve_data, mock)
 router.post('/provider', setProvider);
 
-// All markets list with current quotes
+// All markets list with current quotes (supports /, /quotes, and /prices)
 router.get('/', getAllMarkets);
+router.get('/quotes', getAllMarkets);
+router.get('/prices', getAllMarkets);
 
 // Specific market candles (OHLCV)
 // Note: pair may be encoded (e.g. EUR%2FUSD) or clean (EURUSD)

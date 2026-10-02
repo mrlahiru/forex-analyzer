@@ -24,9 +24,9 @@ export const WatchlistConsole = ({
   const [watchlist, setWatchlist] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : ['EUR/USD', 'GBP/USD', 'USD/JPY'];
+      return saved ? JSON.parse(saved) : ['EUR/USD', 'GBP/USD', 'USD/JPY', 'XAU/USD'];
     } catch {
-      return ['EUR/USD', 'GBP/USD', 'USD/JPY'];
+      return ['EUR/USD', 'GBP/USD', 'USD/JPY', 'XAU/USD'];
     }
   });
 
@@ -195,7 +195,7 @@ export const WatchlistConsole = ({
                 <div className="flex items-baseline justify-between pt-1">
                   <div className="font-mono text-xl font-black text-white tabular-nums tracking-tight">
                     {typeof item.price === 'number'
-                      ? item.price.toFixed(item.pair.includes('JPY') ? 3 : 5)
+                      ? item.price.toFixed((item.pair.includes('JPY') || item.pair.includes('XAU')) ? 2 : 5)
                       : item.price}
                   </div>
                   <div

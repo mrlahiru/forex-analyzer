@@ -77,6 +77,10 @@ const signalSchema = new mongoose.Schema(
       default: 'ACTIVE',
       index: true,
     },
+    closedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

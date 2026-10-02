@@ -41,9 +41,11 @@ export class SignalService {
     // 4. Multi-Timeframe Confirmation Filter
     const finalSignal = applyMultiTimeframeConfirmation(initialSignal, mtfData);
 
-    // 5. Calculate structural Entry, TP1, TP2, TP3, SL levels using Dynamic TPSL Engine
     const currentPrice = analysis.currentPrice;
-    const atr = analysis.indicators.volatility.atr || 0.0012;
+    const isGold = normPair.includes('XAU') || normPair.includes('GOLD');
+    const isJpy = normPair.includes('JPY');
+    const defaultAtr = isGold ? 15.0 : (isJpy ? 0.35 : 0.0012);
+    const atr = analysis.indicators.volatility.atr || defaultAtr;
 
     const tpsl = calculateDynamicTPSL({
       pair: normPair,
@@ -150,7 +152,11 @@ export class SignalService {
           notes: `Signal created with score ${signalData.score}/100`,
         });
 
+        signalData._id = newSignal._id;
         return newSignal;
+      } else {
+        signalData._id = existing._id;
+        return existing;
       }
     } catch (err) {
       console.warn(`[SignalService] DB save warning: ${err.message}`);

@@ -20,6 +20,9 @@ export class MarketDataProvider {
   normalizePair(pair) {
     if (!pair) return 'EUR/USD';
     const clean = pair.toUpperCase().replace(/[^A-Z]/g, '');
+    if (clean === 'GOLD' || clean === 'XAUUSD') {
+      return 'XAU/USD';
+    }
     if (clean.length === 6) {
       return `${clean.slice(0, 3)}/${clean.slice(3)}`;
     }

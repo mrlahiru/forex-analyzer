@@ -19,8 +19,9 @@ router.use('/health', healthRoutes);
 // User Authentication & Profile (Section 1 & 18)
 router.use('/auth', authRoutes);
 
-// Market Data API (Phase 2)
+// Market Data API (Phase 2) - supports both /markets and /market
 router.use('/markets', marketRoutes);
+router.use('/market', marketRoutes);
 
 // Custom User Watchlist (Section 2 & 18)
 router.use('/watchlist', watchlistRoutes);
@@ -28,8 +29,9 @@ router.use('/watchlist', watchlistRoutes);
 // Technical Analysis Engine (Phase 3)
 router.use('/analysis', analysisRoutes);
 
-// Deterministic Signal Engine (Phase 4)
+// Deterministic Signal Engine (Phase 4) - supports both /signals and /signal
 router.use('/signals', signalRoutes);
+router.use('/signal', signalRoutes);
 
 // Dynamic TP/SL & Risk Management Engine (Phase 5)
 router.use('/risk', riskRoutes);
@@ -37,11 +39,13 @@ router.use('/risk', riskRoutes);
 // OpenAI Intelligence & Synthesis Engine (Phase 7)
 router.use('/ai', aiRoutes);
 
-// Automatic Market Scanner & Background Engine (Phase 8)
+// Automatic Market Scanner & Background Engine (Phase 8) - supports both /scanner and /scanners
 router.use('/scanner', scannerRoutes);
+router.use('/scanners', scannerRoutes);
 
-// Telegram Notifications & Alerts Engine (Phase 9)
+// Telegram Notifications & Alerts Engine (Phase 9) - supports both /notifications and /notification
 router.use('/notifications', notificationRoutes);
+router.use('/notification', notificationRoutes);
 
 // Historical Backtesting Engine (Phase 10)
 router.use('/backtest', backtestRoutes);

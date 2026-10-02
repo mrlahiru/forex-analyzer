@@ -13,6 +13,7 @@ router.get('/:pair/ai-explanation', getAiExplanation);
 
 // Multi-timeframe analysis for specific pair (4H, 1H, 15M, 5M)
 router.get('/:pair/multi-timeframe', getMultiTimeframeAnalysis);
+router.get('/:pair/mtf', getMultiTimeframeAnalysis);
 
 // Specific pair analysis with optional ?timeframe=1h
 router.get('/:pair', getAnalysisByPair);

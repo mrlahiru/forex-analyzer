@@ -1,4 +1,5 @@
 import { getDbStatus } from '../config/db.js';
+import { marketDataManager } from '../services/marketData/index.js';
 
 export const getHealth = (req, res) => {
   const dbStatus = getDbStatus();
@@ -11,15 +12,7 @@ export const getHealth = (req, res) => {
     uptime: `${process.uptime().toFixed(1)}s`,
     environment: process.env.NODE_ENV || 'development',
     database: dbStatus,
-    supportedPairs: [
-      'EUR/USD',
-      'GBP/USD',
-      'USD/JPY',
-      'USD/CHF',
-      'AUD/USD',
-      'USD/CAD',
-      'NZD/USD',
-    ],
+    supportedPairs: marketDataManager.supportedPairs,
     supportedTimeframes: ['1m', '5m', '15m', '30m', '1h', '4h', '1d'],
     features: {
       marketDataAbstraction: true,

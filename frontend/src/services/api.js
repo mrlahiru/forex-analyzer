@@ -176,7 +176,7 @@ export const evaluateAllSignals = async (timeframe = '1h') => {
     });
     return {
       success: true,
-      data: response.data?.signals,
+      data: response.data?.signals || [],
     };
   } catch (error) {
     return {
@@ -379,10 +379,25 @@ export const fetchBacktestStrategies = async () => {
   }
 };
 
-// Section 15: Signal History Endpoints
+// Section 15: Signal History & Verification Endpoints
 export const fetchSignalHistory = async (params = {}) => {
   try {
     const response = await api.get('/signals/history', { params });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message,
+    };
+  }
+};
+
+export const verifySignals = async () => {
+  try {
+    const response = await api.post('/signals/verify');
     return {
       success: true,
       data: response.data,

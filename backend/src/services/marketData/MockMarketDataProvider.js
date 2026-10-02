@@ -1,13 +1,14 @@
 import MarketDataProvider from './MarketDataProvider.js';
 
 const BASE_PRICES = {
-  'EUR/USD': { base: 1.0842, pip: 0.0001, decimals: 5, vol: 0.0006 },
-  'GBP/USD': { base: 1.2985, pip: 0.0001, decimals: 5, vol: 0.0008 },
-  'USD/JPY': { base: 154.60, pip: 0.01, decimals: 2, vol: 0.15 },
-  'USD/CHF': { base: 0.8845, pip: 0.0001, decimals: 5, vol: 0.0005 },
-  'AUD/USD': { base: 0.6535, pip: 0.0001, decimals: 5, vol: 0.0006 },
-  'USD/CAD': { base: 1.3915, pip: 0.0001, decimals: 5, vol: 0.0006 },
-  'NZD/USD': { base: 0.5892, pip: 0.0001, decimals: 5, vol: 0.0005 },
+  'EUR/USD': { base: 1.1228, pip: 0.0001, decimals: 5, vol: 0.0006 },
+  'GBP/USD': { base: 1.3186, pip: 0.0001, decimals: 5, vol: 0.0008 },
+  'USD/JPY': { base: 157.86, pip: 0.01, decimals: 2, vol: 0.15 },
+  'USD/CHF': { base: 0.8322, pip: 0.0001, decimals: 5, vol: 0.0005 },
+  'AUD/USD': { base: 0.6916, pip: 0.0001, decimals: 5, vol: 0.0006 },
+  'USD/CAD': { base: 1.4252, pip: 0.0001, decimals: 5, vol: 0.0006 },
+  'NZD/USD': { base: 0.5601, pip: 0.0001, decimals: 5, vol: 0.0005 },
+  'XAU/USD': { base: 4197.40, pip: 0.1, decimals: 2, vol: 6.50 },
 };
 
 const TIMEFRAME_MS = {

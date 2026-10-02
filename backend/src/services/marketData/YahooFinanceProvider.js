@@ -19,6 +19,9 @@ export class YahooFinanceProvider extends MarketDataProvider {
 
   formatPairForProvider(pair) {
     const clean = pair.toUpperCase().replace(/[^A-Z]/g, '');
+    if (clean === 'XAUUSD' || clean === 'GOLD') {
+      return 'GC=F';
+    }
     return `${clean}=X`;
   }
 

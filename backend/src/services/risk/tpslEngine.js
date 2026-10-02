@@ -15,8 +15,9 @@ export const calculateDynamicTPSL = (params) => {
   } = params;
 
   const isJPY = pair?.includes('JPY');
-  const decimals = isJPY ? 2 : 5;
-  const pipMultiplier = isJPY ? 100 : 10000;
+  const isGold = pair?.includes('XAU') || pair?.includes('GOLD');
+  const decimals = (isJPY || isGold) ? 2 : 5;
+  const pipMultiplier = isGold ? 10 : (isJPY ? 100 : 10000);
 
   if (direction === 'NO_TRADE') {
     return {
@@ -35,7 +36,8 @@ export const calculateDynamicTPSL = (params) => {
     };
   }
 
-  const effectiveATR = atr && atr > 0 ? atr : 0.0012;
+  const defaultATR = isGold ? 15.0 : (isJPY ? 0.35 : 0.0012);
+  const effectiveATR = atr && atr > 0 ? atr : defaultATR;
   const entry = parseFloat(currentPrice.toFixed(decimals));
 
   let stopLoss = null;

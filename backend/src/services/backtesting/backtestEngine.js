@@ -43,8 +43,9 @@ class BacktestEngine {
     }
 
     const isJPY = pair.includes('JPY');
-    const pipMultiplier = isJPY ? 100 : 10000;
-    const pipSize = isJPY ? 0.01 : 0.0001;
+    const isGold = pair.includes('XAU') || pair.includes('GOLD');
+    const pipMultiplier = isGold ? 10 : (isJPY ? 100 : 10000);
+    const pipSize = isGold ? 0.1 : (isJPY ? 0.01 : 0.0001);
 
     let balance = parseFloat(initialBalance);
     let peakEquity = balance;
@@ -147,7 +148,7 @@ class BacktestEngine {
             entryTime: currentTrade.entryTime,
             exitTime: currentTimestamp,
             entryPrice: currentTrade.entryPrice,
-            exitPrice: parseFloat(exitPrice.toFixed(isJPY ? 2 : 5)),
+            exitPrice: parseFloat(exitPrice.toFixed((isJPY || isGold) ? 2 : 5)),
             stopLoss: currentTrade.stopLoss,
             tp1: currentTrade.tp1,
             tp2: currentTrade.tp2,

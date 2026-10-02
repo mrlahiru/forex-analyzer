@@ -35,7 +35,8 @@ export const TradingViewChart = ({
   const [hoverData, setHoverData] = useState(null);
 
   const isJPY = pair?.includes('JPY');
-  const priceDecimals = isJPY ? 2 : 5;
+  const isGold = pair?.includes('XAU') || pair?.includes('GOLD');
+  const priceDecimals = (isJPY || isGold) ? 2 : 5;
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -97,7 +98,7 @@ export const TradingViewChart = ({
       priceFormat: {
         type: 'price',
         precision: priceDecimals,
-        minMove: isJPY ? 0.01 : 0.00001,
+        minMove: (isJPY || isGold) ? 0.01 : 0.00001,
       },
     });
     candleSeriesRef.current = candleSeries;

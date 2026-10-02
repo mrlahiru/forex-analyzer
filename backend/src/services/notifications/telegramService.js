@@ -167,7 +167,8 @@ class TelegramService {
     const dirEmoji = isBuy ? '🟢' : '🔴';
     const cleanPair = signal.pair.replace('/', '');
     const isJPY = signal.pair.includes('JPY');
-    const decimals = isJPY ? 2 : 5;
+    const isGold = signal.pair.includes('XAU') || signal.pair.includes('GOLD');
+    const decimals = (isJPY || isGold) ? 2 : 5;
 
     const reasonsList = (signal.reasons || [])
       .slice(0, 4)
@@ -201,7 +202,8 @@ ${reasonsList || '• Multi-timeframe trend and momentum confluence confirmed'}
     const isBuy = signal.direction === 'BUY';
     const cleanPair = signal.pair.replace('/', '');
     const isJPY = signal.pair.includes('JPY');
-    const decimals = isJPY ? 2 : 5;
+    const isGold = signal.pair.includes('XAU') || signal.pair.includes('GOLD');
+    const decimals = (isJPY || isGold) ? 2 : 5;
 
     let targetRatio = '1:1.0';
     let mandate = 'Lock in partial profit (+33%). Move Stop Loss to Entry price (Break-Even) to neutralize risk.';
@@ -236,7 +238,8 @@ ${mandate}
   formatStopLossMessage(signal, currentPrice) {
     const cleanPair = signal.pair.replace('/', '');
     const isJPY = signal.pair.includes('JPY');
-    const decimals = isJPY ? 2 : 5;
+    const isGold = signal.pair.includes('XAU') || signal.pair.includes('GOLD');
+    const decimals = (isJPY || isGold) ? 2 : 5;
 
     return `🛑 <b>STOP LOSS TRIGGERED — CAPITAL PRESERVED</b> 🛑
 
